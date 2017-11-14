@@ -9,6 +9,13 @@ go get -u github.com/devfeel/mapper
 
 ## 2. Getting Started
 ```go
+package main
+
+import (
+	"fmt"
+	"github.com/devfeel/mapper"
+)
+
 type (
 	User struct {
 		Name string
@@ -29,15 +36,20 @@ type (
 func main() {
     mapper.Register(&User{})
 	mapper.Register(&Student{})
+
 	user := &User{}
 	student := &Student{Name: "test", Age: 10, Id: "testId", Score:"100"}
-
 	mapper.Mapper(student, user)
 
 	fmt.Println(student)
 	fmt.Println(user)
 }
 
+```
+执行main，输出：
+```
+&{test 10 testId 100}
+&{test 10 testId 100 }
 ```
 
 ## Features
