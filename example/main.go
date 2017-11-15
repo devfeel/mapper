@@ -9,15 +9,14 @@ type (
 	User struct {
 		Name string
 		Age  int
-		Id   string
-		AA   string `mapper:"Score"`
-		CC 	 string
+		Id   string `mapper:"_id"`
+		AA   string `json:"Score"`
 	}
 
 	Student struct {
 		Name  string
 		Age   int
-		Id    string
+		Id    string `mapper:"_id"`
 		Score string
 	}
 )

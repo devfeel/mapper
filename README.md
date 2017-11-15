@@ -55,3 +55,5 @@ func main() {
 ## Features
 * 支持不同结构体相同名称相同类型字段自动赋值
 * 支持tag标签，tag关键字为 mapper
+* 兼容json-tag标签
+* 当tag为"-"时，将忽略tag定义，使用struct field name

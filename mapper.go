@@ -12,8 +12,11 @@ var (
 )
 
 const (
-	TagName = "mapper"
-	NameConnector = "_"
+	PackageVersion = "0.2"
+	mapperTagKey = "mapper"
+	jsonTagKey = "json"
+	ignoreTagValue = "-"
+	nameConnector = "_"
 )
 
 
@@ -31,7 +34,7 @@ func Register(obj interface{}) error{
 	typeName:= objValue.Elem().Type().String()
 	objElem := objValue.Elem()
 	for i := 0; i < objElem.NumField(); i++ {
-		mapFieldName := typeName + NameConnector + GetFieldName(objElem, i)
+		mapFieldName := typeName + nameConnector + GetFieldName(objElem, i)
 		realFieldName := objElem.Type().Field(i).Name
 		FieldNameMap.Store(mapFieldName, realFieldName)
 	}
@@ -47,10 +50,15 @@ func GetTypeName(obj interface{}) string {
 //CheckExistsField check field is exists by name
 func CheckExistsField(elem reflect.Value, fieldName string) (realFieldName string, exists bool) {
 	typeName := elem.Type().String()
-	fileKey := typeName + NameConnector + fieldName
+	fileKey := typeName + nameConnector + fieldName
 	realName, isOk := FieldNameMap.Load(fileKey)
 
-	return realName.(string), isOk
+	if !isOk{
+		return "", isOk
+	}else{
+		return realName.(string), isOk
+	}
+
 }
 
 //GetFieldName get fieldName by index
@@ -92,5 +100,25 @@ func Mapper(fromObj, toObj interface{}) error {
 }
 
 func getStructTag(field reflect.StructField) string {
-	return field.Tag.Get(TagName)
+	tagValue := ""
+	//1.check mapperTagKey
+	tagValue =field.Tag.Get(mapperTagKey)
+	if checkTagValidity(tagValue){
+		return tagValue
+	}
+
+	//2.check jsonTagKey and ignore "-" value
+	tagValue =field.Tag.Get(jsonTagKey)
+	if checkTagValidity(tagValue){
+		return tagValue
+	}
+
+	return ""
+}
+
+func checkTagValidity(tagValue string) bool{
+	if tagValue != "" && tagValue != ignoreTagValue{
+		return true
+	}
+	return false
 }

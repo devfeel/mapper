@@ -63,6 +63,7 @@ func BenchmarkGetFieldNameWithElem(b *testing.B) {
 }
 
 func Test_CheckExistsField(t *testing.T) {
+	Register(&testStruct{})
 	fieldName := "Name"
 	_, isOk := CheckExistsField(testValue.Elem(), fieldName)
 	if isOk{
@@ -73,6 +74,7 @@ func Test_CheckExistsField(t *testing.T) {
 }
 
 func BenchmarkCheckExistsField(b *testing.B) {
+	Register(&testStruct{})
 	elem := testValue.Elem()
 	fieldName := "Name"
 	for i := 0; i < b.N; i++ {
