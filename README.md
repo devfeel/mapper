@@ -52,16 +52,17 @@ func main() {
 	mapper.Mapper(student, user)
 	mapper.AutoMapper(student, teacher)
 
-	fmt.Println(student)
-	fmt.Println(user)
-	fmt.Println(teacher)
+	fmt.Println("student:", student)
+	fmt.Println("user:", user)
+	fmt.Println("teacher", teacher)
 }
 
 ```
 执行main，输出：
 ```
-&{test 10 testId 100}
-&{test 10 testId 100 }
+student: &{test 10 testId 100}
+user: &{test 10 testId 100}
+teacher &{test 10 testId }
 ```
 
 ## Features

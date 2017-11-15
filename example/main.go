@@ -28,20 +28,20 @@ type (
 	}
 )
 
-func init(){
+func init() {
 	mapper.Register(&User{})
 	mapper.Register(&Student{})
 }
 
 func main() {
 	user := &User{}
-	teacher:= &Teacher{}
-	student := &Student{Name: "test", Age: 10, Id: "testId", Score:"100"}
+	teacher := &Teacher{}
+	student := &Student{Name: "test", Age: 10, Id: "testId", Score: "100"}
 
 	mapper.Mapper(student, user)
 	mapper.AutoMapper(student, teacher)
 
-	fmt.Println(student)
-	fmt.Println(user)
-	fmt.Println(teacher)
+	fmt.Println("student:", student)
+	fmt.Println("user:", user)
+	fmt.Println("teacher", teacher)
 }
