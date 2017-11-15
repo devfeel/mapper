@@ -1,5 +1,11 @@
 ## devfeel/mapper
 
+#### Version 0.3
+* 新增AutoMapper接口，使用该接口无需提前Register类型
+* 特别的，使用该接口性能会比使用Mapper下降20%
+* 更新 example/main
+* 2017-11-15 10:00
+
 #### Version 0.2
 * 新增兼容Json-tag标签
 * 识别顺序：私有Tag > json tag > field name

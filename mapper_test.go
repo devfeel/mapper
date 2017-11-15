@@ -95,7 +95,30 @@ func Test_Mapper(t *testing.T) {
 	}
 }
 
+func Test_AutoMapper(t *testing.T) {
+	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
+	to := &ToStruct{}
+	err := AutoMapper(from, to)
+	if err != nil {
+		t.Error("RunResult error: mapper error", err)
+	} else {
+		t.Log("RunResult success:", to)
+	}
+}
+
 func BenchmarkMapper(b *testing.B) {
+	Register(&FromStruct{})
+	Register(&ToStruct{})
+	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
+	to := &ToStruct{}
+
+	for i := 0; i < b.N; i++ {
+		Mapper(from, to)
+	}
+}
+
+
+func BenchmarkAutoMapper(b *testing.B) {
 	Register(&FromStruct{})
 	Register(&ToStruct{})
 	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}

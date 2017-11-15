@@ -8,7 +8,8 @@ import (
 
 var (
 	ZeroValue reflect.Value
-	FieldNameMap sync.Map
+	fieldNameMap sync.Map
+	registerMap sync.Map
 )
 
 const (
@@ -36,8 +37,12 @@ func Register(obj interface{}) error{
 	for i := 0; i < objElem.NumField(); i++ {
 		mapFieldName := typeName + nameConnector + GetFieldName(objElem, i)
 		realFieldName := objElem.Type().Field(i).Name
-		FieldNameMap.Store(mapFieldName, realFieldName)
+		fieldNameMap.Store(mapFieldName, realFieldName)
 	}
+
+	//store register flag
+	registerMap.Store(typeName, nil)
+
 	return nil
 }
 
@@ -51,7 +56,7 @@ func GetTypeName(obj interface{}) string {
 func CheckExistsField(elem reflect.Value, fieldName string) (realFieldName string, exists bool) {
 	typeName := elem.Type().String()
 	fileKey := typeName + nameConnector + fieldName
-	realName, isOk := FieldNameMap.Load(fileKey)
+	realName, isOk := fieldNameMap.Load(fileKey)
 
 	if !isOk{
 		return "", isOk
@@ -85,6 +90,33 @@ func Mapper(fromObj, toObj interface{}) error {
 	if toElem == ZeroValue {
 		return errors.New("to obj is not legal value")
 	}
+
+	return elemMapper(fromElem, toElem)
+}
+
+//Mapper mapper and set value from struct fromObj to toObj
+func AutoMapper(fromObj, toObj interface{}) error {
+	fromElem := reflect.ValueOf(fromObj).Elem()
+	toElem := reflect.ValueOf(toObj).Elem()
+	if fromElem == ZeroValue {
+		return errors.New("from obj is not legal value")
+	}
+	if toElem == ZeroValue {
+		return errors.New("to obj is not legal value")
+	}
+	//check register flag
+	//if not register, register it
+	if !checkIsRegister(fromElem) {
+		Register(fromObj)
+	}
+	if !checkIsRegister(toElem) {
+		Register(toObj)
+	}
+
+	return elemMapper(fromElem, toElem)
+}
+
+func elemMapper(fromElem, toElem reflect.Value) error{
 	for i := 0; i < fromElem.NumField(); i++ {
 		fieldInfo:=fromElem.Field(i)
 		fieldName := GetFieldName(fromElem, i)
@@ -121,4 +153,10 @@ func checkTagValidity(tagValue string) bool{
 		return true
 	}
 	return false
+}
+
+func checkIsRegister(objElem reflect.Value) bool{
+	typeName:= objElem.Type().String()
+	_, isOk := registerMap.Load(typeName)
+	return isOk
 }
