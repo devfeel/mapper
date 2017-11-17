@@ -2,8 +2,9 @@ package mapper
 
 import (
 	"reflect"
-	"testing"
 	"sync"
+	"testing"
+	"time"
 )
 
 type (
@@ -11,6 +12,7 @@ type (
 		Name string
 		Sex  bool
 		Age  int
+		Time time.Time
 	}
 
 	FromStruct struct {
@@ -66,7 +68,7 @@ func Test_CheckExistsField(t *testing.T) {
 	Register(&testStruct{})
 	fieldName := "Name"
 	_, isOk := CheckExistsField(testValue.Elem(), fieldName)
-	if isOk{
+	if isOk {
 		t.Log("RunResult success:", fieldName)
 	} else {
 		t.Error("RunResult error: fieldName not exists", fieldName)
@@ -106,6 +108,23 @@ func Test_AutoMapper(t *testing.T) {
 	}
 }
 
+func Test_MapperMap(t *testing.T) {
+	Register(&testStruct{})
+	validateTime, _ := time.Parse("2006-01-02 15:04:05", "2017-01-01 10:00:00")
+	fromMap := make(map[string]interface{})
+	fromMap["Name"] = "test"
+	fromMap["Sex"] = true
+	fromMap["Age"] = 10
+	fromMap["Time"] = validateTime
+	toObj := &testStruct{}
+	err := MapperMap(fromMap, toObj)
+	if err != nil && toObj.Time != validateTime {
+		t.Error("RunResult error: mapper error", err)
+	} else {
+		t.Log("RunResult success:", toObj)
+	}
+}
+
 func BenchmarkMapper(b *testing.B) {
 	Register(&FromStruct{})
 	Register(&ToStruct{})
@@ -117,7 +136,6 @@ func BenchmarkMapper(b *testing.B) {
 	}
 }
 
-
 func BenchmarkAutoMapper(b *testing.B) {
 	Register(&FromStruct{})
 	Register(&ToStruct{})
@@ -126,6 +144,20 @@ func BenchmarkAutoMapper(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		Mapper(from, to)
+	}
+}
+
+func BenchmarkMapperMap(b *testing.B) {
+	Register(&testStruct{})
+	fromMap := make(map[string]interface{})
+	fromMap["Name"] = "test"
+	fromMap["Sex"] = true
+	fromMap["Age"] = 10
+	fromMap["time"] = time.Now()
+	toObj := &testStruct{}
+
+	for i := 0; i < b.N; i++ {
+		MapperMap(fromMap, toObj)
 	}
 }
 

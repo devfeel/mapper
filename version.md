@@ -1,5 +1,18 @@
 ## devfeel/mapper
 
+#### Version 0.4
+* 新增MapperMap接口，该接口支持map到struct的自动映射
+* MapperMap支持自动注册struct
+* 目前支持自动映射类型：
+* reflect.Bool
+* reflect.String
+* reflect.Int8\16\32\64
+* reflect.Uint8\16\32\64
+* reflect.Float32\64
+* time.Time：支持原生time\string\[]byte
+* 更新 example/main
+* 2017-11-17 09:00
+
 #### Version 0.3
 * 新增AutoMapper接口，使用该接口无需提前Register类型
 * 特别的，使用该接口性能会比使用Mapper下降20%
