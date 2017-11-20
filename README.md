@@ -22,6 +22,7 @@ type (
 		Age  int
 		Id   string `mapper:"_id"`
 		AA   string `json:"Score"`
+		Time time.Time
 	}
 
 	Student struct {
@@ -39,30 +40,40 @@ type (
 	}
 )
 
-func init(){
+func init() {
 	mapper.Register(&User{})
 	mapper.Register(&Student{})
 }
 
 func main() {
 	user := &User{}
-	teacher:= &Teacher{}
-	student := &Student{Name: "test", Age: 10, Id: "testId", Score:"100"}
+	userMap := &User{}
+	teacher := &Teacher{}
+	student := &Student{Name: "test", Age: 10, Id: "testId", Score: "100"}
+	valMap := make(map[string]interface{})
+	valMap["Name"] = "map"
+	valMap["Age"] = 10
+	valMap["_id"] = "x1asd"
+	valMap["Score"] = 100
+	valMap["Time"] = time.Now()
 
 	mapper.Mapper(student, user)
 	mapper.AutoMapper(student, teacher)
+	mapper.MapperMap(valMap, userMap)
 
 	fmt.Println("student:", student)
 	fmt.Println("user:", user)
 	fmt.Println("teacher", teacher)
+	fmt.Println("userMap:", userMap)
 }
 
 ```
 执行main，输出：
 ```
 student: &{test 10 testId 100}
-user: &{test 10 testId 100}
+user: &{test 10 testId 100 0001-01-01 00:00:00 +0000 UTC}
 teacher &{test 10 testId }
+userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001}
 ```
 
 ## Features

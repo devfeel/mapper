@@ -45,8 +45,7 @@ func main() {
 	valMap["Age"] = 10
 	valMap["_id"] = "x1asd"
 	valMap["Score"] = 100
-	//valMap["Time"] = time.Now()
-	valMap["Time"] = "2017-01-01 00:00:01"
+	valMap["Time"] = time.Now()
 
 	mapper.Mapper(student, user)
 	mapper.AutoMapper(student, teacher)
