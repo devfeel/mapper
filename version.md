@@ -1,5 +1,12 @@
 ## devfeel/mapper
 
+#### Version 0.5
+* 新增SetEnabledTypeChecking函数，用于设置是否启用字段类型一致性检查，默认为不启用
+* 如果SetEnabledTypeChecking = true,则在Mapper\AutoMapper时，将对两个类型的同名字段进行类型一致性检查，如果不一致自动忽略赋值
+* 更新mapper\mapper_test.go
+* 更新 example/main
+* 2017-11-24 11:00
+
 #### Version 0.4
 * 新增MapperMap接口，该接口支持map到struct的自动映射
 * MapperMap支持自动注册struct

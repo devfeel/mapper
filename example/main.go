@@ -47,6 +47,8 @@ func main() {
 	valMap["Score"] = 100
 	valMap["Time"] = time.Now()
 
+	mapper.SetEnabledTypeChecking(true)
+
 	mapper.Mapper(student, user)
 	mapper.AutoMapper(student, teacher)
 	mapper.MapperMap(valMap, userMap)

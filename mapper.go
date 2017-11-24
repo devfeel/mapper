@@ -8,13 +8,14 @@ import (
 )
 
 var (
-	ZeroValue    reflect.Value
-	fieldNameMap sync.Map
-	registerMap  sync.Map
+	ZeroValue           reflect.Value
+	fieldNameMap        sync.Map
+	registerMap         sync.Map
+	enabledTypeChecking bool
 )
 
 const (
-	PackageVersion = "0.2"
+	packageVersion = "0.5"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	ignoreTagValue = "-"
@@ -26,6 +27,17 @@ const (
 
 func init() {
 	ZeroValue = reflect.Value{}
+	enabledTypeChecking = false
+}
+
+func PackageVersion() string {
+	return packageVersion
+}
+
+// SetEnabledTypeChecking set enabled flag for TypeChecking
+// if set true, the field type will be checked for consistency during mapping
+func SetEnabledTypeChecking(isEnabled bool) {
+	enabledTypeChecking = isEnabled
 }
 
 // Register register struct to init Map
@@ -45,7 +57,6 @@ func Register(obj interface{}) error {
 
 	//store register flag
 	registerMap.Store(typeName, nil)
-
 	return nil
 }
 
@@ -69,11 +80,11 @@ func CheckExistsField(elem reflect.Value, fieldName string) (realFieldName strin
 
 }
 
-// GetFieldName get fieldName by index
+// GetFieldName get fieldName with ElemValue and index
 // if config tag string, return tag value
-func GetFieldName(elem reflect.Value, index int) string {
+func GetFieldName(objElem reflect.Value, index int) string {
 	fieldName := ""
-	field := elem.Type().Field(index)
+	field := objElem.Type().Field(index)
 	tag := getStructTag(field)
 	if tag != "" {
 		fieldName = tag
@@ -109,7 +120,6 @@ func MapperMap(fromMap map[string]interface{}, toObj interface{}) error {
 		if !exists {
 			continue
 		}
-		//TODO:check field is same type
 		fieldInfo, exists := toElem.Type().FieldByName(realFieldName)
 		if !exists {
 			continue
@@ -161,15 +171,22 @@ func AutoMapper(fromObj, toObj interface{}) error {
 
 func elemMapper(fromElem, toElem reflect.Value) error {
 	for i := 0; i < fromElem.NumField(); i++ {
-		fieldInfo := fromElem.Field(i)
+		fromFieldInfo := fromElem.Field(i)
 		fieldName := GetFieldName(fromElem, i)
 		//check field is exists
 		realFieldName, exists := CheckExistsField(toElem, fieldName)
 		if !exists {
 			continue
 		}
-		//TODO:check field is same type
-		toElem.FieldByName(realFieldName).Set(fieldInfo)
+
+		toFieldInfo := toElem.FieldByName(realFieldName)
+		//check field is same type
+		if enabledTypeChecking {
+			if fromFieldInfo.Kind() != toFieldInfo.Kind() {
+				continue
+			}
+		}
+		toFieldInfo.Set(fromFieldInfo)
 	}
 	return nil
 }

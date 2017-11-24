@@ -34,6 +34,15 @@ func init() {
 	testValue = reflect.ValueOf(&testStruct{})
 }
 
+func Test_SetEnabledTypeChecking(t *testing.T) {
+	SetEnabledTypeChecking(true)
+	if enabledTypeChecking != true {
+		t.Error("SetEnabledTypeChecking error: set true but query is not true")
+	} else {
+		t.Log("SetEnabledTypeChecking success")
+	}
+}
+
 func Test_GetTypeName(t *testing.T) {
 	name := GetTypeName(&testStruct{})
 	if name == "" {
@@ -85,6 +94,7 @@ func BenchmarkCheckExistsField(b *testing.B) {
 }
 
 func Test_Mapper(t *testing.T) {
+	SetEnabledTypeChecking(true)
 	Register(&FromStruct{})
 	Register(&ToStruct{})
 	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
