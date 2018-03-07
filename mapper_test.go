@@ -178,9 +178,6 @@ func Test_MapperMapSlice(t *testing.T) {
 		t.Error(err)
 	} else {
 		t.Log(toSlice, len(toSlice))
-		for _, v := range toSlice {
-			fmt.Println(v)
-		}
 	}
 
 }

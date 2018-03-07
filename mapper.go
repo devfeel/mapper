@@ -15,7 +15,7 @@ var (
 )
 
 const (
-	packageVersion = "0.5"
+	packageVersion = "0.6"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	ignoreTagValue = "-"
@@ -387,6 +387,7 @@ func checkIsRegister(objElem reflect.Value) bool {
 	return isOk
 }
 
+//convert slice interface{} to []interface{}
 func convertToSlice(arr interface{}) []interface{} {
 	v := reflect.ValueOf(arr)
 	if v.Kind() != reflect.Slice {
