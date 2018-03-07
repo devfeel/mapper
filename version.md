@@ -1,5 +1,13 @@
 ## devfeel/mapper
 
+#### Version 0.6
+* 新增MapperSlice\MapperMapSlice函数，用于处理切片类转换
+* MapperSlice: 将*StructA类型的Slice转换为*StructB类型的Slice,具体使用代码可参考Test_MapperSlice
+* MapperMapSlice: 将map[string]map[string]interface{}转换为*Struct类型的Slice,具体使用代码可参考Test_MapperMapSlice
+* 调整：Mapper调整为自动Register类型，无需单独Register类型代码
+* 更新mapper\mapper_test.go
+* 2018-03-07 12:00
+
 #### Version 0.5
 * 新增SetEnabledTypeChecking函数，用于设置是否启用字段类型一致性检查，默认为不启用
 * 如果SetEnabledTypeChecking = true,则在Mapper\AutoMapper时，将对两个类型的同名字段进行类型一致性检查，如果不一致自动忽略赋值

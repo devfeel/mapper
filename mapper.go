@@ -47,11 +47,24 @@ func Register(obj interface{}) error {
 		return errors.New("no exists this value")
 	}
 
-	typeName := objValue.Elem().Type().String()
-	objElem := objValue.Elem()
-	for i := 0; i < objElem.NumField(); i++ {
-		mapFieldName := typeName + nameConnector + GetFieldName(objElem, i)
-		realFieldName := objElem.Type().Field(i).Name
+	return registerValue(objValue.Elem())
+}
+
+// registerValue register Value to init Map
+func registerValue(objValue reflect.Value) error {
+	regValue := objValue
+	if objValue == ZeroValue {
+		return errors.New("no exists this value")
+	}
+
+	if regValue.Type().Kind() == reflect.Ptr {
+		regValue = regValue.Elem()
+	}
+
+	typeName := regValue.Type().String()
+	for i := 0; i < regValue.NumField(); i++ {
+		mapFieldName := typeName + nameConnector + GetFieldName(regValue, i)
+		realFieldName := regValue.Type().Field(i).Name
 		fieldNameMap.Store(mapFieldName, realFieldName)
 	}
 
@@ -131,6 +144,36 @@ func MapperMap(fromMap map[string]interface{}, toObj interface{}) error {
 	return nil
 }
 
+// MapperMapSlice mapper from map[string]map[string]interface{} to a slice of any type's ptr
+// toSlice must be a slice of any type's ptr.
+func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interface{}) error {
+	var err error
+	toValue := reflect.ValueOf(toSlice)
+	if toValue.Kind() != reflect.Ptr {
+		return errors.New("toSlice must pointer of slice")
+	}
+	if toValue.IsNil() {
+		return errors.New("toSlice must not nil pointer")
+	}
+
+	toElemType := reflect.TypeOf(toSlice).Elem().Elem()
+	if toElemType.Kind() != reflect.Ptr {
+		return errors.New("slice elem must ptr ")
+	}
+
+	direct := reflect.Indirect(toValue)
+	//3 elem parse: 1.[]*type 2.*type 3.type
+	toElemType = toElemType.Elem()
+	for _, v := range fromMaps {
+		elem := reflect.New(toElemType)
+		err = MapperMap(v, elem.Interface())
+		if err == nil {
+			direct.Set(reflect.Append(direct, elem))
+		}
+	}
+	return err
+}
+
 // Mapper mapper and set value from struct fromObj to toObj
 // not support auto register struct
 func Mapper(fromObj, toObj interface{}) error {
@@ -142,34 +185,57 @@ func Mapper(fromObj, toObj interface{}) error {
 	if toElem == ZeroValue {
 		return errors.New("to obj is not legal value")
 	}
-
 	return elemMapper(fromElem, toElem)
+}
+
+// MapperSlice mapper from slice of struct to a slice of any type
+// fromSlice and toSlice must be a slice of any type.
+func MapperSlice(fromSlice, toSlice interface{}) error {
+	var err error
+	toValue := reflect.ValueOf(toSlice)
+	if toValue.Kind() != reflect.Ptr {
+		return errors.New("toSlice must pointer of slice")
+	}
+	if toValue.IsNil() {
+		return errors.New("toSlice must not nil pointer")
+	}
+
+	elemType := reflect.TypeOf(toSlice).Elem().Elem()
+	if elemType.Kind() != reflect.Ptr {
+		return errors.New("slice elem must ptr ")
+	}
+
+	direct := reflect.Indirect(toValue)
+	//3 elem parse: 1.[]*type 2.*type 3.type
+	elemType = elemType.Elem()
+
+	fromElems := convertToSlice(fromSlice)
+	for _, v := range fromElems {
+		elem := reflect.New(elemType)
+		err = elemMapper(reflect.ValueOf(v).Elem(), elem.Elem())
+		if err == nil {
+			direct.Set(reflect.Append(direct, elem))
+		}
+	}
+	return err
 }
 
 // Mapper mapper and set value from struct fromObj to toObj
 // support auto register struct
 func AutoMapper(fromObj, toObj interface{}) error {
-	fromElem := reflect.ValueOf(fromObj).Elem()
-	toElem := reflect.ValueOf(toObj).Elem()
-	if fromElem == ZeroValue {
-		return errors.New("from obj is not legal value")
-	}
-	if toElem == ZeroValue {
-		return errors.New("to obj is not legal value")
-	}
-	//check register flag
-	//if not register, register it
-	if !checkIsRegister(fromElem) {
-		Register(fromObj)
-	}
-	if !checkIsRegister(toElem) {
-		Register(toObj)
-	}
-
-	return elemMapper(fromElem, toElem)
+	return Mapper(fromObj, toObj)
 }
 
 func elemMapper(fromElem, toElem reflect.Value) error {
+	//check register flag
+	//if not register, register it
+	if !checkIsRegister(fromElem) {
+		registerValue(fromElem)
+	}
+	if !checkIsRegister(toElem) {
+		registerValue(toElem)
+	}
+
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
 		fieldName := GetFieldName(fromElem, i)
@@ -319,4 +385,17 @@ func checkIsRegister(objElem reflect.Value) bool {
 	typeName := objElem.Type().String()
 	_, isOk := registerMap.Load(typeName)
 	return isOk
+}
+
+func convertToSlice(arr interface{}) []interface{} {
+	v := reflect.ValueOf(arr)
+	if v.Kind() != reflect.Slice {
+		panic("toslice arr not slice")
+	}
+	l := v.Len()
+	ret := make([]interface{}, l)
+	for i := 0; i < l; i++ {
+		ret[i] = v.Index(i).Interface()
+	}
+	return ret
 }
