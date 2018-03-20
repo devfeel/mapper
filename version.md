@@ -1,5 +1,9 @@
 ## devfeel/mapper
 
+#### Version 0.6.1
+* 新增reflectx包，增加部分便捷函数
+* 2018-03-20 12:00
+
 #### Version 0.6
 * 新增MapperSlice\MapperMapSlice函数，用于处理切片类转换
 * MapperSlice: 将*StructA类型的Slice转换为*StructB类型的Slice,具体使用代码可参考Test_MapperSlice
