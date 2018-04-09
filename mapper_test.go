@@ -11,10 +11,12 @@ import (
 
 type (
 	testStruct struct {
-		Name string
-		Sex  bool
-		Age  int
-		Time time.Time
+		Name  string
+		Sex   bool
+		Age   int
+		Time  time.Time
+		Time2 JSONTime
+		Time3 JSONTime
 	}
 
 	FromStruct struct {
@@ -154,6 +156,7 @@ func Test_MapperMap(t *testing.T) {
 	fromMap["Sex"] = true
 	fromMap["Age"] = 10
 	fromMap["Time"] = validateTime
+	fromMap["Time2"] = validateTime
 	toObj := &testStruct{}
 	err := MapperMap(fromMap, toObj)
 	if err != nil && toObj.Time != validateTime {
@@ -180,6 +183,23 @@ func Test_MapperMapSlice(t *testing.T) {
 		t.Log(toSlice, len(toSlice))
 	}
 
+}
+
+func Test_IsTimeField(t *testing.T) {
+	t1 := time.Now()
+	if isTimeField(reflect.ValueOf(t1)) {
+		t.Log("check time.Now ok")
+	} else {
+		t.Error("check time.Now error")
+	}
+
+	var t2 JSONTime
+	t2 = JSONTime(time.Now())
+	if isTimeField(reflect.ValueOf(t2)) {
+		t.Log("check mapper.Time ok")
+	} else {
+		t.Error("check mapper.Time error")
+	}
 }
 
 func BenchmarkMapperMapSlice(b *testing.B) {

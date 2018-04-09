@@ -1,5 +1,9 @@
 ## devfeel/mapper
 
+#### Version 0.6.2
+* 新增jsontime文件，用于处理需要定制Time字段json序列化格式场景
+* 2018-04-09 16:00
+
 #### Version 0.6.1
 * 新增reflectx包，增加部分便捷函数
 * 2018-03-20 12:00

@@ -12,6 +12,8 @@ var (
 	fieldNameMap        sync.Map
 	registerMap         sync.Map
 	enabledTypeChecking bool
+	timeType            = reflect.TypeOf(time.Now())
+	jsonTimeType        = reflect.TypeOf(JSONTime(time.Now()))
 )
 
 const (
@@ -322,12 +324,17 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 	case reflect.Struct:
 		if value == nil {
 			fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		} else if _, ok := fieldValue.Interface().(time.Time); ok {
+		} else if isTimeField(fieldValue) {
 			var timeString string
-			switch d := value.(type) {
-			case time.Time:
+			if fieldValue.Type() == timeType {
 				timeString = ""
-				fieldValue.Set(reflect.ValueOf(d))
+				fieldValue.Set(reflect.ValueOf(value))
+			}
+			if fieldValue.Type() == jsonTimeType {
+				timeString = ""
+				fieldValue.Set(reflect.ValueOf(JSONTime(value.(time.Time))))
+			}
+			switch d := value.(type) {
 			case []byte:
 				timeString = string(d)
 			case string:
@@ -355,6 +362,16 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 	}
 
 	return nil
+}
+
+func isTimeField(fieldValue reflect.Value) bool {
+	if _, ok := fieldValue.Interface().(time.Time); ok {
+		return true
+	}
+	if _, ok := fieldValue.Interface().(JSONTime); ok {
+		return true
+	}
+	return false
 }
 
 func getStructTag(field reflect.StructField) string {
