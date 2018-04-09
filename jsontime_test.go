@@ -30,7 +30,7 @@ func TestTimeJson(t *testing.T) {
 func TestTimeJson_NewFormat(t *testing.T) {
 	now := JSONTime(time.Now())
 	t.Log(now)
-	SetTimeJJSONFormat("2006-01-02T15:04:05")
+	SetTimeJSONFormat("2006-01-02T15:04:05")
 	src := `{"id":5,"name":"xiaoming","birthday":"2016-06-30T16:09:51"}`
 	p := new(Person)
 	err := json.Unmarshal([]byte(src), p)

@@ -8,7 +8,7 @@ var (
 	timeJSONFormat = "2006-01-02 15:04:05"
 )
 
-func SetTimeJJSONFormat(format string) {
+func SetTimeJSONFormat(format string) {
 	timeJSONFormat = format
 }
 
