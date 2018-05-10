@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"github.com/devfeel/mapper"
 	"time"
@@ -27,6 +29,12 @@ type (
 		Age   int
 		Id    string `mapper:"_id"`
 		Level string
+	}
+
+	JsonUser struct {
+		Name string
+		Age  int
+		Time mapper.JSONTime
 	}
 )
 
@@ -57,4 +65,12 @@ func main() {
 	fmt.Println("user:", user)
 	fmt.Println("teacher", teacher)
 	fmt.Println("userMap:", userMap)
+
+	jsonUser := &JsonUser{
+		Name: "json",
+		Age:  1,
+		Time: mapper.JSONTime(time.Now()),
+	}
+
+	fmt.Println(jsonUser)
 }
