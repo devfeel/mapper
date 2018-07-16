@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"github.com/devfeel/mapper"
 	"time"
@@ -13,7 +11,7 @@ type (
 		Name string
 		Age  int
 		Id   string `mapper:"_id"`
-		AA   string `json:"Score"`
+		AA   string `json:"Score,omitempty"`
 		Time time.Time
 	}
 

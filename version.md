@@ -1,5 +1,10 @@
 ## devfeel/mapper
 
+#### Version 0.6.3
+* 新增当json标签含有omitempty时，忽略多余信息，自动获取第一位tag信息，感谢 #2 from @zhangmingfeng
+* 完善示例 example/main
+* 2018-07-16 08:00
+
 #### Version 0.6.2
 * 新增jsontime文件，用于处理需要定制Time字段json序列化格式场景
 * 2018-04-09 16:00
