@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sync"
 	"time"
+	"strings"
 )
 
 var (
@@ -385,7 +386,8 @@ func getStructTag(field reflect.StructField) string {
 	//2.check jsonTagKey
 	tagValue = field.Tag.Get(jsonTagKey)
 	if checkTagValidity(tagValue) {
-		return tagValue
+		// support more tag property, as json tag omitempty 2018-07-13
+		return strings.Split(tagValue, ",")[0]
 	}
 
 	return ""
