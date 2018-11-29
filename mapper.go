@@ -2,19 +2,21 @@ package mapper
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
-	"strings"
 )
 
 var (
-	ZeroValue           reflect.Value
-	fieldNameMap        sync.Map
-	registerMap         sync.Map
-	enabledTypeChecking bool
-	timeType            = reflect.TypeOf(time.Now())
-	jsonTimeType        = reflect.TypeOf(JSONTime(time.Now()))
+	ZeroValue                reflect.Value
+	fieldNameMap             sync.Map
+	registerMap              sync.Map
+	enabledTypeChecking      bool
+	enabledMapperStructField bool
+	timeType                 = reflect.TypeOf(time.Now())
+	jsonTimeType             = reflect.TypeOf(JSONTime(time.Now()))
 )
 
 const (
@@ -31,6 +33,7 @@ const (
 func init() {
 	ZeroValue = reflect.Value{}
 	enabledTypeChecking = false
+	enabledMapperStructField = true
 }
 
 func PackageVersion() string {
@@ -39,8 +42,19 @@ func PackageVersion() string {
 
 // SetEnabledTypeChecking set enabled flag for TypeChecking
 // if set true, the field type will be checked for consistency during mapping
+// default is false
 func SetEnabledTypeChecking(isEnabled bool) {
 	enabledTypeChecking = isEnabled
+}
+
+// SetEnabledMapperStructField set enabled flag for MapperStructField
+// if set true, the reflect.Struct field will auto mapper
+// must follow premises:
+// 1. fromField and toField type must be reflect.Struct and not time.Time
+// 2. fromField and toField must be not same type
+// default is enabled
+func SetEnabledMapperStructField(isEnabled bool) {
+	enabledMapperStructField = isEnabled
 }
 
 // Register register struct to init Map
@@ -255,7 +269,24 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 				continue
 			}
 		}
-		toFieldInfo.Set(fromFieldInfo)
+
+		if enabledMapperStructField &&
+			toFieldInfo.Kind() == reflect.Struct &&
+			fromFieldInfo.Kind() == reflect.Struct &&
+			!isTimeField(toFieldInfo) &&
+			!isTimeField(fromFieldInfo) &&
+			toFieldInfo.Kind() != fromFieldInfo.Kind() {
+			x := reflect.New(toFieldInfo.Type()).Elem()
+			err := elemMapper(fromFieldInfo, x)
+			if err != nil {
+				fmt.Println("auto mapper field", fromFieldInfo, toFieldInfo, "error", err.Error())
+			} else {
+				toFieldInfo.Set(x)
+			}
+		} else {
+			toFieldInfo.Set(fromFieldInfo)
+		}
+
 	}
 	return nil
 }

@@ -1,5 +1,49 @@
 ## devfeel/mapper
 
+#### Version 0.6.4
+* New Feature: Add auto mapper reflect.Struct field
+* New Feature: Add mapper.SetEnabledMapperStructField used to set enabled flag for MapperStructField
+* Detail:
+  - if set true, the reflect.Struct field will auto mapper
+  - fromField and toField type must be reflect.Struct and not time.Time
+  - fromField and toField must be not same type
+  - default is enabled
+* Example:
+``` golang
+type ItemStruct1 struct {
+	ProductId int64
+}
+type ItemStruct2 struct {
+	ProductId int64
+}
+type ProductBasic struct {
+	ProductId    int64
+	ProductTitle string
+	Item         ItemStruct1
+	CreateTime   time.Time
+}
+type ProductGetResponse struct {
+	ProductId    int64
+	ProductTitle string
+	Item         ItemStruct2
+	CreateTime   time.Time
+}
+
+func main() {
+	from := &ProductBasic{
+		ProductId:    10001,
+		ProductTitle: "Test Product",
+		Item:         ItemStruct1{ProductId: 20},
+		CreateTime:   time.Now(),
+	}
+	to := &ProductGetResponse{}
+	mapper.AutoMapper(from, to)
+	fmt.Println(to)
+}
+```
+* Add Demo: example/structfield
+* 2018-11-29 08:00
+
 #### Version 0.6.3
 * 新增当json标签含有omitempty时，忽略多余信息，自动获取第一位tag信息，感谢 #2 from @zhangmingfeng
 * 完善示例 example/main
