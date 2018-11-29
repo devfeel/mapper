@@ -271,15 +271,13 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 		}
 
 		if enabledMapperStructField &&
-			toFieldInfo.Kind() == reflect.Struct &&
-			fromFieldInfo.Kind() == reflect.Struct &&
-			!isTimeField(toFieldInfo) &&
-			!isTimeField(fromFieldInfo) &&
-			toFieldInfo.Kind() != fromFieldInfo.Kind() {
+			toFieldInfo.Kind() == reflect.Struct && fromFieldInfo.Kind() == reflect.Struct &&
+			toFieldInfo.Type() != fromFieldInfo.Type() &&
+			!isTimeField(toFieldInfo) && !isTimeField(fromFieldInfo) {
 			x := reflect.New(toFieldInfo.Type()).Elem()
 			err := elemMapper(fromFieldInfo, x)
 			if err != nil {
-				fmt.Println("auto mapper field", fromFieldInfo, toFieldInfo, "error", err.Error())
+				fmt.Println("auto mapper field", fromFieldInfo, "=>", toFieldInfo, "error", err.Error())
 			} else {
 				toFieldInfo.Set(x)
 			}

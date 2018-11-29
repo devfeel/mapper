@@ -24,7 +24,6 @@ type ProductBasic struct {
 	CreateTime   time.Time
 }
 type ProductGetResponse struct {
-	// ProductBasic;
 	ProductId    int64
 	CategoryType int
 	ProductTitle string

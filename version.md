@@ -1,7 +1,7 @@
 ## devfeel/mapper
 
 #### Version 0.6.4
-* New Feature: Add auto mapper reflect.Struct field
+* New Feature: Add auto mapper reflect.Struct field, fixed for #3
 * New Feature: Add mapper.SetEnabledMapperStructField used to set enabled flag for MapperStructField
 * Detail:
   - if set true, the reflect.Struct field will auto mapper
