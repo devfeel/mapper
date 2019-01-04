@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -188,6 +189,21 @@ func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interfac
 			direct.Set(reflect.Append(direct, elem))
 		}
 	}
+	return err
+}
+
+// MapToJson mapper from map[string]interface{} to json []byte
+func MapToJson(fromMap map[string]interface{}) ([]byte, error) {
+	json, err := json.Marshal(fromMap)
+	if err != nil {
+		return nil, err
+	}
+	return json, nil
+}
+
+// JsonToMap mapper from json []byte to map[string]interface{}
+func JsonToMap(body []byte, toMap *map[string]interface{}) error {
+	err := json.Unmarshal(body, toMap)
 	return err
 }
 

@@ -1,5 +1,26 @@
 ## devfeel/mapper
 
+#### Version 0.6.5
+* New Feature: Add MapToJson to mapper from map[string]interface{} to json []byte
+* New Feature: Add JsonToMap mapper from json []byte to map[string]interface{}
+* Example:
+```golang
+    // MapToJson
+    fromMap := make(map[string]interface{})
+    fromMap["Name"] = "test"
+    fromMap["Sex"] = true
+    fromMap["Age"] = 10
+    data, err := MapToJson(fromMap)
+    fmt.println(data, err)
+
+    // JsonToMap
+    var retMap map[string]interface{}
+    err := JsonToMap(data, &retMap)
+    fmt.println(retMap, err)
+```
+* 2019-01-04 16:00
+
+
 #### Version 0.6.4
 * New Feature: Add auto mapper reflect.Struct field, fixed for #3
 * New Feature: Add mapper.SetEnabledMapperStructField used to set enabled flag for MapperStructField

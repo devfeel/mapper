@@ -202,6 +202,24 @@ func Test_IsTimeField(t *testing.T) {
 	}
 }
 
+func Test_MapToJson_JsonToMap(t *testing.T) {
+	fromMap := createMap()
+	data, err := MapToJson(fromMap)
+	if err != nil {
+		t.Error("MapToJson error", err)
+	} else {
+		var retMap map[string]interface{}
+		err := JsonToMap(data, &retMap)
+		if err != nil {
+			t.Error("MapToJson.JsonToMap error", err)
+		}
+		if len(retMap) != len(fromMap) {
+			t.Error("MapToJson failed, not match length")
+		}
+		t.Log("MapToJson success", fromMap, retMap)
+	}
+}
+
 func BenchmarkMapperMapSlice(b *testing.B) {
 	var s []*testStruct
 	fromMaps := make(map[string]map[string]interface{})
@@ -258,4 +276,14 @@ func BenchmarkSyncMap(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		sMap.Load("1")
 	}
+}
+
+func createMap() map[string]interface{} {
+	validateTime, _ := time.Parse("2006-01-02 15:04:05", "2017-01-01 10:00:00")
+	fromMap := make(map[string]interface{})
+	fromMap["Name"] = "test"
+	fromMap["Sex"] = true
+	fromMap["Age"] = 10
+	fromMap["Time"] = validateTime
+	return fromMap
 }

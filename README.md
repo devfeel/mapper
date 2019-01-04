@@ -82,6 +82,7 @@ userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001
 * 支持字段为结构体时的自动赋值
 * 支持map到struct的自动映射赋值，使用MapperMap
 * 支持map到struct slice的自动赋值，使用MapperMapSlice
+* 支持map与json的互相转换
 * 支持tag标签，tag关键字为 mapper
 * 兼容json-tag标签
 * 当tag为"-"时，将忽略tag定义，使用struct field name
