@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 // Convert is the target string
@@ -193,4 +194,40 @@ func (a argInt) Get(i int, args ...int) (r int) {
 		r = args[0]
 	}
 	return
+}
+
+// TimeToUnix transform time to Unix time, the number of seconds elapsed
+func TimeToUnix(t time.Time) int64 {
+	return t.Unix()
+}
+
+// UnixToTime transform Unix time to local Time
+func UnixToTime(tt int64) time.Time {
+	return time.Unix(tt, 0)
+}
+
+// TimeToUnixLocation transform time to Unix time with time location
+// location like "Asia/Shanghai"
+func TimeToUnixLocation(t time.Time, location string) (int64, error) {
+	timeStr := t.Format("2006-01-02 15:04:05")
+	loc, err := time.LoadLocation(location)
+	if err != nil {
+		return 0, err
+	}
+	tt, err := time.ParseInLocation("2006-01-02 15:04:05", timeStr, loc)
+	if err != nil {
+		return 0, err
+	}
+	return tt.Unix(), err
+}
+
+// UnixToTimeLocation transform Unix time to local Time with time location
+// location like "Asia/Shanghai"
+func UnixToTimeLocation(tt int64, location string) (time.Time, error) {
+	loc, err := time.LoadLocation(location)
+	if err != nil {
+		return time.Now(), err
+	}
+	time.Local = loc
+	return time.Unix(tt, 0), nil
 }
