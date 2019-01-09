@@ -16,6 +16,7 @@ var (
 	registerMap              sync.Map
 	enabledTypeChecking      bool
 	enabledMapperStructField bool
+	enabledAutoTypeConvert   bool
 	timeType                 = reflect.TypeOf(time.Now())
 	jsonTimeType             = reflect.TypeOf(JSONTime(time.Now()))
 )
@@ -24,7 +25,7 @@ const (
 	packageVersion = "0.6"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
-	ignoreTagValue = "-"
+	IgnoreTagValue = "-"
 	nameConnector  = "_"
 	formatTime     = "15:04:05"
 	formatDate     = "2006-01-02"
@@ -35,6 +36,7 @@ func init() {
 	ZeroValue = reflect.Value{}
 	enabledTypeChecking = false
 	enabledMapperStructField = true
+	enabledAutoTypeConvert = true
 }
 
 func PackageVersion() string {
@@ -46,6 +48,13 @@ func PackageVersion() string {
 // default is false
 func SetEnabledTypeChecking(isEnabled bool) {
 	enabledTypeChecking = isEnabled
+}
+
+// SetEnabledAutoTypeConvert set enabled flag for auto type convert
+// if set true, field will auto convert in Time and Unix
+// default is true
+func SetEnabledAutoTypeConvert(isEnabled bool) {
+	enabledAutoTypeConvert = isEnabled
 }
 
 // SetEnabledMapperStructField set enabled flag for MapperStructField
@@ -298,7 +307,21 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 				toFieldInfo.Set(x)
 			}
 		} else {
-			toFieldInfo.Set(fromFieldInfo)
+			isSet := false
+			if enabledAutoTypeConvert {
+				if isTimeField(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
+					fromTime := fromFieldInfo.Interface().(time.Time)
+					toFieldInfo.Set(reflect.ValueOf(TimeToUnix(fromTime)))
+					isSet = true
+				} else if isTimeField(toFieldInfo) && fromFieldInfo.Kind() == reflect.Int64 {
+					fromTime := fromFieldInfo.Interface().(int64)
+					toFieldInfo.Set(reflect.ValueOf(UnixToTime(fromTime)))
+					isSet = true
+				}
+			}
+			if !isSet {
+				toFieldInfo.Set(fromFieldInfo)
+			}
 		}
 
 	}
@@ -323,7 +346,6 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 		} else {
 			fieldValue.SetString(ToString(value))
 		}
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if value == nil {
 			fieldValue.SetInt(0)
@@ -385,6 +407,15 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 				timeString = string(d)
 			case string:
 				timeString = d
+			case int64:
+				if enabledAutoTypeConvert {
+					//try to transform Unix time to local Time
+					t, err := UnixToTimeLocation(value.(int64), time.UTC.String())
+					if err != nil {
+						return err
+					}
+					fieldValue.Set(reflect.ValueOf(t))
+				}
 			}
 			if timeString != "" {
 				if len(timeString) >= 19 {
@@ -404,6 +435,10 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 					}
 				}
 			}
+		}
+	default:
+		if reflect.ValueOf(value).Type() == fieldValue.Type() {
+			fieldValue.Set(reflect.ValueOf(value))
 		}
 	}
 
@@ -439,7 +474,7 @@ func getStructTag(field reflect.StructField) string {
 }
 
 func checkTagValidity(tagValue string) bool {
-	if tagValue != "" && tagValue != ignoreTagValue {
+	if tagValue != "" && tagValue != IgnoreTagValue {
 		return true
 	}
 	return false

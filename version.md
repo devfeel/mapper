@@ -1,5 +1,36 @@
 ## devfeel/mapper
 
+#### Version 0.7
+* New Feature: Add TimeToUnix\UnixToTime\TimeToUnixLocation\UnixToTimeLocation used to transform Time and Unix
+* New Feature: Add SetEnabledAutoTypeConvert used to set whether or not auto do type convert when field is Time and Unix
+* Detail:
+  - if set enabled, field will auto convert in Time and Unix
+  - it will effective when fromField is time.Time and toField is int64
+  - it will effective when fromField is int64 and toField is time.Time
+  - it will effective when you use Mapper or MapperMap
+  - default is enabled
+* Example:
+```golang
+    type ProductBasic struct {
+        ProductId    int64
+        CreateTime   time.Time
+    }
+    type ProductGetResponse struct {
+        ProductId    int64
+        CreateTime   int64
+    }
+
+    from := &ProductBasic{
+        ProductId:    10001,
+        CreateTime:   time.Now(),
+    }
+    to := &ProductGetResponse{}
+    mapper.Mapper(from, to)
+    fmt.println(to)
+```
+* Update: Added type support when use MapperMap
+* 2019-01-09 12:00
+
 #### Version 0.6.5
 * New Feature: Add MapToJson to mapper from map[string]interface{} to json []byte
 * New Feature: Add JsonToMap mapper from json []byte to map[string]interface{}

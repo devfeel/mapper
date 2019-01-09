@@ -8,11 +8,13 @@ import (
 
 type (
 	User struct {
-		Name string
-		Age  int
-		Id   string `mapper:"_id"`
-		AA   string `json:"Score,omitempty"`
-		Time time.Time
+		Name     string
+		Age      int
+		Id       string `mapper:"_id"`
+		AA       string `json:"Score,omitempty"`
+		Data     []byte
+		Students []Student
+		Time     time.Time
 	}
 
 	Student struct {
@@ -51,6 +53,8 @@ func main() {
 	valMap["Age"] = 10
 	valMap["_id"] = "x1asd"
 	valMap["Score"] = 100
+	valMap["Data"] = []byte{1, 2, 3, 4}
+	valMap["Students"] = []byte{1, 2, 3, 4} //[]Student{*student}
 	valMap["Time"] = time.Now()
 
 	mapper.SetEnabledTypeChecking(true)
