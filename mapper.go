@@ -12,6 +12,7 @@ import (
 
 var (
 	ZeroValue                reflect.Value
+	DefaultTimeWrapper       *TimeWrapper
 	fieldNameMap             sync.Map
 	registerMap              sync.Map
 	enabledTypeChecking      bool
@@ -19,6 +20,7 @@ var (
 	enabledAutoTypeConvert   bool
 	timeType                 = reflect.TypeOf(time.Now())
 	jsonTimeType             = reflect.TypeOf(JSONTime(time.Now()))
+	typeWrappers             []TypeWrapper
 )
 
 const (
@@ -34,6 +36,10 @@ const (
 
 func init() {
 	ZeroValue = reflect.Value{}
+	DefaultTimeWrapper = NewTimeWrapper()
+	typeWrappers = []TypeWrapper{}
+	UseWrapper(DefaultTimeWrapper)
+
 	enabledTypeChecking = false
 	enabledMapperStructField = true
 	enabledAutoTypeConvert = true
@@ -41,6 +47,24 @@ func init() {
 
 func PackageVersion() string {
 	return packageVersion
+}
+
+// UseWrapper register a type wrapper
+func UseWrapper(w TypeWrapper) {
+	if len(typeWrappers) > 0 {
+		typeWrappers[len(typeWrappers)-1].SetNext(w)
+	}
+	typeWrappers = append(typeWrappers, w)
+}
+
+// CheckIsTypeWrapper check value is in type wrappers
+func CheckIsTypeWrapper(value reflect.Value) bool {
+	for _, w := range typeWrappers {
+		if w.IsType(value) {
+			return true
+		}
+	}
+	return false
 }
 
 // SetEnabledTypeChecking set enabled flag for TypeChecking
@@ -298,7 +322,7 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 		if enabledMapperStructField &&
 			toFieldInfo.Kind() == reflect.Struct && fromFieldInfo.Kind() == reflect.Struct &&
 			toFieldInfo.Type() != fromFieldInfo.Type() &&
-			!isTimeField(toFieldInfo) && !isTimeField(fromFieldInfo) {
+			!CheckIsTypeWrapper(toFieldInfo) && !CheckIsTypeWrapper(fromFieldInfo) {
 			x := reflect.New(toFieldInfo.Type()).Elem()
 			err := elemMapper(fromFieldInfo, x)
 			if err != nil {
@@ -309,11 +333,11 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 		} else {
 			isSet := false
 			if enabledAutoTypeConvert {
-				if isTimeField(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
+				if DefaultTimeWrapper.IsType(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
 					fromTime := fromFieldInfo.Interface().(time.Time)
 					toFieldInfo.Set(reflect.ValueOf(TimeToUnix(fromTime)))
 					isSet = true
-				} else if isTimeField(toFieldInfo) && fromFieldInfo.Kind() == reflect.Int64 {
+				} else if DefaultTimeWrapper.IsType(toFieldInfo) && fromFieldInfo.Kind() == reflect.Int64 {
 					fromTime := fromFieldInfo.Interface().(int64)
 					toFieldInfo.Set(reflect.ValueOf(UnixToTime(fromTime)))
 					isSet = true
@@ -392,7 +416,7 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 	case reflect.Struct:
 		if value == nil {
 			fieldValue.Set(reflect.Zero(fieldValue.Type()))
-		} else if isTimeField(fieldValue) {
+		} else if DefaultTimeWrapper.IsType(fieldValue) {
 			var timeString string
 			if fieldValue.Type() == timeType {
 				timeString = ""
@@ -443,16 +467,6 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 	}
 
 	return nil
-}
-
-func isTimeField(fieldValue reflect.Value) bool {
-	if _, ok := fieldValue.Interface().(time.Time); ok {
-		return true
-	}
-	if _, ok := fieldValue.Interface().(JSONTime); ok {
-		return true
-	}
-	return false
 }
 
 func getStructTag(field reflect.StructField) string {

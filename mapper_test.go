@@ -187,7 +187,7 @@ func Test_MapperMapSlice(t *testing.T) {
 
 func Test_IsTimeField(t *testing.T) {
 	t1 := time.Now()
-	if isTimeField(reflect.ValueOf(t1)) {
+	if DefaultTimeWrapper.IsType(reflect.ValueOf(t1)) {
 		t.Log("check time.Now ok")
 	} else {
 		t.Error("check time.Now error")
@@ -195,7 +195,7 @@ func Test_IsTimeField(t *testing.T) {
 
 	var t2 JSONTime
 	t2 = JSONTime(time.Now())
-	if isTimeField(reflect.ValueOf(t2)) {
+	if DefaultTimeWrapper.IsType(reflect.ValueOf(t2)) {
 		t.Log("check mapper.Time ok")
 	} else {
 		t.Error("check mapper.Time error")

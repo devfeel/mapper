@@ -47,6 +47,7 @@ func main() {
 
 	from2 := &ProductBasic{}
 	mapper.Mapper(to, from2)
+	fmt.Println(from)
 	fmt.Println(to)
 	fmt.Println(from2)
 }

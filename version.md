@@ -1,5 +1,13 @@
 ## devfeel/mapper
 
+#### Version 0.7.1
+* New Feature: Add TypeWrapper used to register custom Type Checker
+* New Feature: Add UseWrapper used to add your TypeWrapper
+* Update: remove isTimeField, add TimeWrapper
+* Detail:
+  - now only support IsType used to check type
+* 2019-02-03 16:00
+
 #### Version 0.7
 * New Feature: Add TimeToUnix\UnixToTime\TimeToUnixLocation\UnixToTimeLocation used to transform Time and Unix
 * New Feature: Add SetEnabledAutoTypeConvert used to set whether or not auto do type convert when field is Time and Unix
