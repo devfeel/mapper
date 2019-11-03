@@ -97,8 +97,7 @@ func Register(obj interface{}) error {
 	if objValue == ZeroValue {
 		return errors.New("no exists this value")
 	}
-
-	return registerValue(objValue.Elem())
+	return registerValue(objValue)
 }
 
 // registerValue register Value to init Map
@@ -168,7 +167,12 @@ func GetFieldName(objElem reflect.Value, index int) string {
 // 5.reflect.Float32\64
 // 6.time.Time
 func MapperMap(fromMap map[string]interface{}, toObj interface{}) error {
-	toElem := reflect.ValueOf(toObj).Elem()
+	toElemType := reflect.ValueOf(toObj)
+	toElem := toElemType
+	if toElemType.Kind() == reflect.Ptr {
+		toElem = toElemType.Elem()
+	}
+
 	if toElem == ZeroValue {
 		return errors.New("to obj is not legal value")
 	}
@@ -196,7 +200,7 @@ func MapperMap(fromMap map[string]interface{}, toObj interface{}) error {
 }
 
 // MapperMapSlice mapper from map[string]map[string]interface{} to a slice of any type's ptr
-// toSlice must be a slice of any type's ptr.
+// toSlice must be a slice of any type.
 func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interface{}) error {
 	var err error
 	toValue := reflect.ValueOf(toSlice)
@@ -208,16 +212,57 @@ func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interfac
 	}
 
 	toElemType := reflect.TypeOf(toSlice).Elem().Elem()
-	if toElemType.Kind() != reflect.Ptr {
-		return errors.New("slice elem must ptr ")
-	}
-
+	realType := toElemType.Kind()
 	direct := reflect.Indirect(toValue)
 	//3 elem parse: 1.[]*type 2.*type 3.type
-	toElemType = toElemType.Elem()
+	if realType == reflect.Ptr {
+		toElemType = toElemType.Elem()
+	}
 	for _, v := range fromMaps {
 		elem := reflect.New(toElemType)
 		err = MapperMap(v, elem.Interface())
+		if err == nil {
+			if realType == reflect.Ptr {
+				direct.Set(reflect.Append(direct, elem))
+			} else {
+				direct.Set(reflect.Append(direct, elem.Elem()))
+			}
+		}
+	}
+	return err
+}
+
+// MapperSlice mapper from slice of struct to a slice of any type
+// fromSlice and toSlice must be a slice of any type.
+func MapperSlice(fromSlice, toSlice interface{}) error {
+	var err error
+	toValue := reflect.ValueOf(toSlice)
+	if toValue.Kind() != reflect.Ptr {
+		return errors.New("toSlice must pointer of slice")
+	}
+	if toValue.IsNil() {
+		return errors.New("toSlice must not nil pointer")
+	}
+
+	elemType := reflect.TypeOf(toSlice).Elem().Elem()
+	realType := elemType.Kind()
+	direct := reflect.Indirect(toValue)
+	//3 elem parse: 1.[]*type 2.*type 3.type
+	if realType == reflect.Ptr {
+		elemType = elemType.Elem()
+	}
+
+	fromElems := convertToSlice(fromSlice)
+	for _, v := range fromElems {
+		elem := reflect.New(elemType).Elem()
+		if realType == reflect.Ptr {
+			elem = reflect.New(elemType)
+		}
+		if realType == reflect.Ptr {
+			err = elemMapper(reflect.ValueOf(v).Elem(), elem.Elem())
+		} else {
+			err = elemMapper(reflect.ValueOf(v), elem)
+		}
 		if err == nil {
 			direct.Set(reflect.Append(direct, elem))
 		}
@@ -252,38 +297,6 @@ func Mapper(fromObj, toObj interface{}) error {
 		return errors.New("to obj is not legal value")
 	}
 	return elemMapper(fromElem, toElem)
-}
-
-// MapperSlice mapper from slice of struct to a slice of any type
-// fromSlice and toSlice must be a slice of any type.
-func MapperSlice(fromSlice, toSlice interface{}) error {
-	var err error
-	toValue := reflect.ValueOf(toSlice)
-	if toValue.Kind() != reflect.Ptr {
-		return errors.New("toSlice must pointer of slice")
-	}
-	if toValue.IsNil() {
-		return errors.New("toSlice must not nil pointer")
-	}
-
-	elemType := reflect.TypeOf(toSlice).Elem().Elem()
-	if elemType.Kind() != reflect.Ptr {
-		return errors.New("slice elem must ptr ")
-	}
-
-	direct := reflect.Indirect(toValue)
-	//3 elem parse: 1.[]*type 2.*type 3.type
-	elemType = elemType.Elem()
-
-	fromElems := convertToSlice(fromSlice)
-	for _, v := range fromElems {
-		elem := reflect.New(elemType)
-		err = elemMapper(reflect.ValueOf(v).Elem(), elem.Elem())
-		if err == nil {
-			direct.Set(reflect.Append(direct, elem))
-		}
-	}
-	return err
 }
 
 // Mapper mapper and set value from struct fromObj to toObj

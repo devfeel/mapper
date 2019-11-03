@@ -127,6 +127,24 @@ func Test_MapperSlice(t *testing.T) {
 	}
 }
 
+func Test_MapperStructSlice(t *testing.T) {
+	SetEnabledTypeChecking(true)
+	var fromSlice []FromStruct
+	var toSlice []ToStruct
+	for i := 0; i < 10; i++ {
+		fromSlice = append(fromSlice, FromStruct{Name: "From" + strconv.Itoa(i), Sex: true, AA: "AA" + strconv.Itoa(i)})
+	}
+	err := MapperSlice(fromSlice, &toSlice)
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(toSlice, len(toSlice))
+		for _, v := range toSlice {
+			fmt.Println(v)
+		}
+	}
+}
+
 func BenchmarkMapperSlice(b *testing.B) {
 	var fromSlice []*FromStruct
 	var toSlice []*ToStruct
@@ -168,6 +186,24 @@ func Test_MapperMap(t *testing.T) {
 
 func Test_MapperMapSlice(t *testing.T) {
 	var toSlice []*testStruct
+	fromMaps := make(map[string]map[string]interface{})
+	for i := 0; i < 10; i++ {
+		fromMap := make(map[string]interface{})
+		fromMap["Name"] = "s" + strconv.Itoa(i)
+		fromMap["Sex"] = true
+		fromMap["Age"] = i
+		fromMaps[strconv.Itoa(i)] = fromMap
+	}
+	err := MapperMapSlice(fromMaps, &toSlice)
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(toSlice, len(toSlice))
+	}
+}
+
+func Test_MapperStructMapSlice(t *testing.T) {
+	var toSlice []testStruct
 	fromMaps := make(map[string]map[string]interface{})
 	for i := 0; i < 10; i++ {
 		fromMap := make(map[string]interface{})

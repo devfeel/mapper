@@ -1,5 +1,31 @@
 ## devfeel/mapper
 
+#### Version 0.7.2
+* New Feature: MapperSlice support ptr and struct
+* New Feature: MapperMapSlice support ptr and struct
+* Detail:
+  - now support two slice's element type is ptr or struct in MapperSlice
+  - now support slice's element type is ptr or struct in MapperMapSlice
+  - About MapperMapSlice:
+  ```golang
+    //view test code in mapper_test.go:Test_MapperSlice\Test_MapperStructSlice
+    //type ptr
+    var toSlice []*testStruct
+    //type struct
+    var toSlice []testStruct
+  ```
+  - About MapperSlice:
+  ```golang
+    //view test code in mapper_test.go:Test_MapperMapSlice\Test_MapperStructMapSlice
+    //type ptr
+    var fromSlice []*FromStruct
+ 	var toSlice []*ToStruct
+    //type struct
+    var fromSlice []FromStruct
+    var toSlice []ToStruct
+  ```
+* 2019-11-03 16:00 in ShangHai
+
 #### Version 0.7.1
 * New Feature: Add TypeWrapper used to register custom Type Checker
 * New Feature: Add UseWrapper used to add your TypeWrapper
