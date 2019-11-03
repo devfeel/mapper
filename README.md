@@ -1,5 +1,5 @@
 # devfeel/mapper
-A simple mapper tools for different struct or map to struct
+A simple and easy go tools for auto mapper struct to map, struct to struct, slice to slice, map to slice, map to json.
 
 ## 1. Install
 
