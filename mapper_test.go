@@ -184,6 +184,32 @@ func Test_MapperMap(t *testing.T) {
 	}
 }
 
+func Test_MapToSlice(t *testing.T) {
+	var toSlice []*testStruct
+	/*fromMaps := make(map[string]interface{})
+	for i := 0; i < 10; i++ {
+		from := new(testStruct)
+		from.Name = "s" + strconv.Itoa(i)
+		from.Sex = true
+		from.Age = i
+		fromMaps[strconv.Itoa(i)] = from
+	}*/
+	fromMaps := make(map[string]interface{})
+	for i := 0; i < 10; i++ {
+		fromMap := make(map[string]interface{})
+		fromMap["Name"] = "s" + strconv.Itoa(i)
+		fromMap["Sex"] = true
+		fromMap["Age"] = i
+		fromMaps[strconv.Itoa(i)] = fromMap
+	}
+	err := MapToSlice(fromMaps, &toSlice)
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(toSlice, len(toSlice))
+	}
+}
+
 func Test_MapperMapSlice(t *testing.T) {
 	var toSlice []*testStruct
 	fromMaps := make(map[string]map[string]interface{})

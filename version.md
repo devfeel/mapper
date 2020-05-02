@@ -1,5 +1,38 @@
 ## devfeel/mapper
 
+#### Version 0.7.3
+* Feature: add MapToSlice to mapper from map[string]interface{} to a slice of any type's ptr
+* Refactor: set MapperMapSlice to Deprecated, will remove on v1.0
+* About MapToSlice::
+  ```
+  func Test_MapToSlice(t *testing.T) {
+  	var toSlice []*testStruct
+  	/*fromMaps := make(map[string]interface{})
+  	for i := 0; i < 10; i++ {
+  		from := new(testStruct)
+  		from.Name = "s" + strconv.Itoa(i)
+  		from.Sex = true
+  		from.Age = i
+  		fromMaps[strconv.Itoa(i)] = from
+  	}*/
+  	fromMaps := make(map[string]interface{})
+  	for i := 0; i < 10; i++ {
+  		fromMap := make(map[string]interface{})
+  		fromMap["Name"] = "s" + strconv.Itoa(i)
+  		fromMap["Sex"] = true
+  		fromMap["Age"] = i
+  		fromMaps[strconv.Itoa(i)] = fromMap
+  	}
+  	err := MapToSlice(fromMaps, &toSlice)
+  	if err != nil {
+  		t.Error(err)
+  	} else {
+  		t.Log(toSlice, len(toSlice))
+  	}
+  }
+  ```
+* 2020-05-02 16:00 in ChangZhou
+
 #### Version 0.7.2
 * New Feature: MapperSlice support ptr and struct
 * New Feature: MapperMapSlice support ptr and struct
