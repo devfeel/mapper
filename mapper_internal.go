@@ -16,7 +16,16 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 	if !checkIsRegister(toElem) {
 		registerValue(toElem)
 	}
+	if toElem.Type().Kind() == reflect.Map {
+		elemToMap(fromElem, toElem)
+	} else {
+		elemToStruct(fromElem, toElem)
+	}
 
+	return nil
+}
+
+func elemToStruct(fromElem, toElem reflect.Value) {
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
 		fieldName := GetFieldName(fromElem, i)
@@ -64,7 +73,14 @@ func elemMapper(fromElem, toElem reflect.Value) error {
 		}
 
 	}
-	return nil
+}
+
+func elemToMap(fromElem, toElem reflect.Value) {
+	for i := 0; i < fromElem.NumField(); i++ {
+		fromFieldInfo := fromElem.Field(i)
+		fieldName := GetFieldName(fromElem, i)
+		toElem.SetMapIndex(reflect.ValueOf(fieldName), fromFieldInfo)
+	}
 }
 
 func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value interface{}) error {

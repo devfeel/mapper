@@ -22,7 +22,7 @@ var (
 )
 
 const (
-	packageVersion = "0.6"
+	packageVersion = "0.7.4"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	IgnoreTagValue = "-"
@@ -110,10 +110,12 @@ func registerValue(objValue reflect.Value) error {
 	}
 
 	typeName := regValue.Type().String()
-	for i := 0; i < regValue.NumField(); i++ {
-		mapFieldName := typeName + nameConnector + GetFieldName(regValue, i)
-		realFieldName := regValue.Type().Field(i).Name
-		fieldNameMap.Store(mapFieldName, realFieldName)
+	if regValue.Type().Kind() == reflect.Struct {
+		for i := 0; i < regValue.NumField(); i++ {
+			mapFieldName := typeName + nameConnector + GetFieldName(regValue, i)
+			realFieldName := regValue.Type().Field(i).Name
+			fieldNameMap.Store(mapFieldName, realFieldName)
+		}
 	}
 
 	//store register flag
@@ -240,7 +242,7 @@ func MapToSlice(fromMap map[string]interface{}, toSlice interface{}) error {
 
 // MapperMapSlice mapper from map[string]map[string]interface{} to a slice of any type's ptr
 // toSlice must be a slice of any type.
-// Deprecated: Use the PostFormValue instead
+// Deprecated: will remove on v1.0, please use MapToSlice instead
 func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interface{}) error {
 	var err error
 	toValue := reflect.ValueOf(toSlice)

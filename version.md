@@ -1,5 +1,28 @@
 ## devfeel/mapper
 
+
+#### Version 0.7.4
+* Feature: AutoMapper&Mapper support mapper struct to map[string]interface{}
+* Refactor: set MapperMapSlice to Deprecated, will remove on v1.0
+* About AutoMapper::
+  ```
+  func Test_AutoMapper_StructToMap(t *testing.T) {
+  	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
+  	to := make(map[string]interface{})
+  	err := AutoMapper(from, &to)
+  	if err != nil {
+  		t.Error("RunResult error: mapper error", err)
+  	} else {
+  		if to["UserName"] == "From"{
+  			t.Log("RunResult success:", to)
+  		}else{
+  			t.Error("RunResult failed: map[UserName]", to["UserName"])
+  		}
+  	}
+  }
+  ```
+* 2020-06-07 16:00 in ShangHai
+
 #### Version 0.7.3
 * Feature: add MapToSlice to mapper from map[string]interface{} to a slice of any type's ptr
 * Refactor: set MapperMapSlice to Deprecated, will remove on v1.0

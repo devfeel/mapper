@@ -167,6 +167,21 @@ func Test_AutoMapper(t *testing.T) {
 	}
 }
 
+func Test_AutoMapper_StructToMap(t *testing.T) {
+	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
+	to := make(map[string]interface{})
+	err := AutoMapper(from, &to)
+	if err != nil {
+		t.Error("RunResult error: mapper error", err)
+	} else {
+		if to["UserName"] == "From" {
+			t.Log("RunResult success:", to)
+		} else {
+			t.Error("RunResult failed: map[UserName]", to["UserName"])
+		}
+	}
+}
+
 func Test_MapperMap(t *testing.T) {
 	validateTime, _ := time.Parse("2006-01-02 15:04:05", "2017-01-01 10:00:00")
 	fromMap := make(map[string]interface{})
@@ -316,6 +331,15 @@ func BenchmarkAutoMapper(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		Mapper(from, to)
+	}
+}
+
+func BenchmarkAutoMapper_Map(b *testing.B) {
+	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
+	to := make(map[string]interface{})
+
+	for i := 0; i < b.N; i++ {
+		Mapper(from, &to)
 	}
 }
 
