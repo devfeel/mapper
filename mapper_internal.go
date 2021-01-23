@@ -234,8 +234,15 @@ func checkIsRegister(objElem reflect.Value) bool {
 //convert slice interface{} to []interface{}
 func convertToSlice(arr interface{}) []interface{} {
 	v := reflect.ValueOf(arr)
-	if v.Kind() != reflect.Slice {
-		panic("toslice arr not slice")
+	if v.Kind() == reflect.Ptr {
+		if v.Elem().Kind() != reflect.Slice {
+			panic("fromSlice arr is not a pointer to a slice")
+		}
+		v = v.Elem()
+	} else {
+		if v.Kind() != reflect.Slice {
+			panic("fromSlice arr is not a slice")
+		}
 	}
 	l := v.Len()
 	ret := make([]interface{}, l)

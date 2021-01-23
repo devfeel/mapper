@@ -93,7 +93,7 @@ func SetEnabledMapperStructField(isEnabled bool) {
 func Register(obj interface{}) error {
 	objValue := reflect.ValueOf(obj)
 	if objValue == ZeroValue {
-		return errors.New("no exists this value")
+		return errors.New("obj value does not exist")
 	}
 	return registerValue(objValue)
 }
@@ -102,7 +102,7 @@ func Register(obj interface{}) error {
 func registerValue(objValue reflect.Value) error {
 	regValue := objValue
 	if objValue == ZeroValue {
-		return errors.New("no exists this value")
+		return errors.New("obj value does not exist")
 	}
 
 	if regValue.Type().Kind() == reflect.Ptr {
@@ -205,10 +205,10 @@ func MapToSlice(fromMap map[string]interface{}, toSlice interface{}) error {
 	var err error
 	toValue := reflect.ValueOf(toSlice)
 	if toValue.Kind() != reflect.Ptr {
-		return errors.New("toSlice must pointer of slice")
+		return errors.New("toSlice must be a pointer to a slice")
 	}
 	if toValue.IsNil() {
-		return errors.New("toSlice must not nil pointer")
+		return errors.New("toSlice must not be a nil pointer")
 	}
 
 	toElemType := reflect.TypeOf(toSlice).Elem().Elem()
@@ -247,10 +247,10 @@ func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interfac
 	var err error
 	toValue := reflect.ValueOf(toSlice)
 	if toValue.Kind() != reflect.Ptr {
-		return errors.New("toSlice must pointer of slice")
+		return errors.New("toSlice must be a pointer to a slice")
 	}
 	if toValue.IsNil() {
-		return errors.New("toSlice must not nil pointer")
+		return errors.New("toSlice must not be a nil pointer")
 	}
 
 	toElemType := reflect.TypeOf(toSlice).Elem().Elem()
@@ -280,10 +280,10 @@ func MapperSlice(fromSlice, toSlice interface{}) error {
 	var err error
 	toValue := reflect.ValueOf(toSlice)
 	if toValue.Kind() != reflect.Ptr {
-		return errors.New("toSlice must pointer of slice")
+		return errors.New("toSlice must be a pointer to a slice")
 	}
 	if toValue.IsNil() {
-		return errors.New("toSlice must not nil pointer")
+		return errors.New("toSlice must not be a nil pointer")
 	}
 
 	elemType := reflect.TypeOf(toSlice).Elem().Elem()

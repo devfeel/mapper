@@ -178,7 +178,7 @@ func ToInt64(value interface{}) (d int64) {
 	case uint, uint8, uint16, uint32, uint64:
 		d = int64(val.Uint())
 	default:
-		panic(fmt.Errorf("ToInt64 need numeric not `%T`", value))
+		panic(fmt.Errorf("ToInt64 needs numeric type, not `%T`", value))
 	}
 	return
 }
