@@ -22,7 +22,7 @@ var (
 )
 
 const (
-	packageVersion = "0.7.4"
+	packageVersion = "0.7.5"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	IgnoreTagValue = "-"

@@ -1,5 +1,10 @@
 ## devfeel/mapper
 
+#### Version 0.7.5
+* Feature: Support for *[] to *[] with MapperSlice
+* Ops: Definitive error messages
+* Tips: Merge pull request #9 from MrWormHole/master, Thanks to @MrWormHole
+* 2021-01-26 12:00 in ShangHai
 
 #### Version 0.7.4
 * Feature: AutoMapper&Mapper support mapper struct to map[string]interface{}
