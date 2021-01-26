@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"sync"
@@ -121,8 +120,34 @@ func Test_MapperSlice(t *testing.T) {
 		t.Error(err)
 	} else {
 		t.Log(toSlice, len(toSlice))
-		for _, v := range toSlice {
-			fmt.Println(v)
+		for i := 0; i < len(fromSlice); i++ {
+			if !reflect.DeepEqual(fromSlice[i].Name, toSlice[i].Name) ||
+				!reflect.DeepEqual(fromSlice[i].Sex, toSlice[i].Sex) ||
+				!reflect.DeepEqual(fromSlice[i].AA, toSlice[i].BB) {
+				t.Fail()
+			}
+		}
+	}
+}
+
+func Test_MapperSlice2(t *testing.T) {
+	SetEnabledTypeChecking(true)
+	var fromSlice []*FromStruct
+	var toSlice []*ToStruct
+	for i := 0; i < 10; i++ {
+		fromSlice = append(fromSlice, &FromStruct{Name: "From" + strconv.Itoa(i), Sex: true, AA: "AA" + strconv.Itoa(i)})
+	}
+	err := MapperSlice(&fromSlice, &toSlice)
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(toSlice, len(toSlice))
+		for i := 0; i < len(fromSlice); i++ {
+			if !reflect.DeepEqual(fromSlice[i].Name, toSlice[i].Name) ||
+				!reflect.DeepEqual(fromSlice[i].Sex, toSlice[i].Sex) ||
+				!reflect.DeepEqual(fromSlice[i].AA, toSlice[i].BB) {
+				t.Fail()
+			}
 		}
 	}
 }
@@ -139,8 +164,34 @@ func Test_MapperStructSlice(t *testing.T) {
 		t.Error(err)
 	} else {
 		t.Log(toSlice, len(toSlice))
-		for _, v := range toSlice {
-			fmt.Println(v)
+		for i := 0; i < len(fromSlice); i++ {
+			if !reflect.DeepEqual(fromSlice[i].Name, toSlice[i].Name) ||
+				!reflect.DeepEqual(fromSlice[i].Sex, toSlice[i].Sex) ||
+				!reflect.DeepEqual(fromSlice[i].AA, toSlice[i].BB) {
+				t.Fail()
+			}
+		}
+	}
+}
+
+func Test_MapperStructSlice2(t *testing.T) {
+	SetEnabledTypeChecking(true)
+	var fromSlice []FromStruct
+	var toSlice []ToStruct
+	for i := 0; i < 10; i++ {
+		fromSlice = append(fromSlice, FromStruct{Name: "From" + strconv.Itoa(i), Sex: true, AA: "AA" + strconv.Itoa(i)})
+	}
+	err := MapperSlice(&fromSlice, &toSlice)
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log(toSlice, len(toSlice))
+		for i := 0; i < len(fromSlice); i++ {
+			if !reflect.DeepEqual(fromSlice[i].Name, toSlice[i].Name) ||
+				!reflect.DeepEqual(fromSlice[i].Sex, toSlice[i].Sex) ||
+				!reflect.DeepEqual(fromSlice[i].AA, toSlice[i].BB) {
+				t.Fail()
+			}
 		}
 	}
 }
