@@ -64,6 +64,35 @@ func getFuncByType(k reflect.Type) DefaultValueFunc {
 	defer mux.RUnlock()
 	return regTypeFuncMap[k]
 }
+
+func getDefaultValueAndCheckEmbedded(v reflect.Value) (tv reflect.Value, ok bool) {
+	if !implDefaultInitValue(v.Type()) {
+		return
+	}
+	t := v.Type()
+	structV := v
+	if t.Kind() == reflect.Ptr {
+		t = v.Elem().Type()
+		structV = v.Elem()
+	}
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if f.Anonymous {
+			if implDefaultInitValue(f.Type) {
+				if structV.Field(i).Kind() == reflect.Ptr && structV.Field(i).IsNil() {
+					return
+				} else {
+					break
+				}
+			}
+		}
+	}
+	dv, _ := v.Interface().(DefaultInitValue)
+	tv = dv.Default()
+	ok = true
+	return
+}
+
 func bindValue(v reflect.Value, tag string) {
 	if v == ZeroValue || v.IsZero() {
 		return
@@ -72,11 +101,10 @@ func bindValue(v reflect.Value, tag string) {
 	if t.Kind() == reflect.Ptr {
 		t = v.Elem().Type()
 	}
-
-	if implDefaultInitValue(t) {
-		dv, _ := v.Interface().(DefaultInitValue)
-		//TODO 此处无法判断 指针类型带来的接口实现 会造成 default 执行报错
-		tv := dv.Default()
+	if tv, ok := getDefaultValueAndCheckEmbedded(v); ok {
+		//dv, _ := v.Interface().(DefaultInitValue)
+		////TODO 此处无法判断 指针类型带来的接口实现 会造成 default 执行报错,暂时利用深层以上方式 检测内嵌field是否实现了接口。
+		//tv := dv.Default()
 		if v.Type().Kind() == reflect.Ptr {
 			if tv.Type() == t {
 				v.Elem().Set(tv)
