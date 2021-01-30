@@ -11,11 +11,27 @@ func strFunc(str string) reflect.Value {
 	return reflect.ValueOf(str)
 }
 
+//Support computing
 func int64Func(str string) reflect.Value {
-	r, _ := strconv.ParseInt(str, 10, 64)
+	//exp, err := parser.ParseExpr(str)
+	//if err == nil {
+	//	fset := token.NewFileSet()
+	//	_ = ast.Print(fset, exp)
+	//}
+	if strings.Contains(str, "*") {
+		ss := strings.Split(str, "*")
+		a, _ := strconv.ParseInt(strings.TrimSpace(ss[0]), 10, 64)
+		b, _ := strconv.ParseInt(strings.TrimSpace(ss[1]), 10, 64)
+		return reflect.ValueOf(a * b)
+	} else {
+		r, _ := strconv.ParseInt(str, 10, 64)
+		return reflect.ValueOf(r)
+	}
+}
+func uint64Func(str string) reflect.Value {
+	r, _ := strconv.ParseUint(str, 10, 64)
 	return reflect.ValueOf(r)
 }
-
 func boolFunc(str string) reflect.Value {
 	b, _ := strconv.ParseBool(str)
 	return reflect.ValueOf(b)
@@ -24,12 +40,6 @@ func boolFunc(str string) reflect.Value {
 func float64Func(str string) reflect.Value {
 	r, _ := strconv.ParseFloat(str, 64)
 	return reflect.ValueOf(r)
-}
-
-var defaultTimeLayout = "2006-01-02 15:04:05"
-
-func SetDefaultTimeLayout(layout string) {
-	defaultTimeLayout = layout
 }
 
 func dateTimeFunc(str string) reflect.Value {

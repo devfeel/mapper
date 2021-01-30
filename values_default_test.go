@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"encoding/json"
 	"log"
 	"reflect"
 	"testing"
@@ -8,37 +9,56 @@ import (
 )
 
 func init() {
+	SetDefaultTag("default")
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
 
-func (s Info) Default() reflect.Value {
-	return reflect.ValueOf(Info{Name: "test name"})
-}
+//func (s InfoForDefaultValueFunc) Default() reflect.Value {
+//	return reflect.ValueOf(InfoForDefaultValueFunc{Name: "test name"})
+//}
 
-//for test not same struct
-type Info2 struct {
-	Ext  string `d:"aaa"`
-	Name string `d:"123"`
+type InfoForDefaultValueFunc struct {
+	Ext  string `default:"aaa"`
+	Name string `default:"123"`
 }
 type Info struct {
-	Ext  string `d:"aaa"`
-	Name string `d:"123"`
+	Ext        string  `default:"aaa"`
+	Name       string  `default:"123"`
+	BoolFalse  bool    `default:"false"`
+	BoolTrue   bool    `default:"true"`
+	Float      float32 `default:"12.21"`
+	Float64    float64 `default:"12.51"`
+	Int        int     `default:"12*11"`
+	Int64      int64   `default:"12*11"`
+	NumberUint uint    `default:"12"`
+}
+
+func (s AnyInfo) Default() reflect.Value {
+	return reflect.ValueOf(AnyInfo{AnyInfoName: "test anyInfo name"})
+}
+
+type AnyInfo struct {
+	AnyInfoName string `default:"anyInfo"`
 }
 type ShowInfo struct {
-	Name string `d:"name"`
+	Name string `default:"name"`
 	Info
-	CreateTime time.Time `d:"2020-01-02 03:04:01"`
+	*AnyInfo
+	AnyInfo2                AnyInfo
+	InfoForDefaultValueFunc InfoForDefaultValueFunc
+	CreateTime              time.Time `default:"2020-01-02 03:04:01"`
 }
 
 func TestBindDefaultValue(t *testing.T) {
 	var s ShowInfo
 	BindDefaultValue(&s)
-	log.Printf("%+v", s)
+	data, _ := json.Marshal(s)
+	log.Printf("%s", data)
 }
 
 func BenchmarkBindDefaultValue(b *testing.B) {
-	var s ShowInfo
 	for i := 0; i < b.N; i++ {
+		var s ShowInfo
 		BindDefaultValue(&s)
 	}
 }
