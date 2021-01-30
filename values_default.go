@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"log"
 	"reflect"
 	"sync"
 	"time"
@@ -66,7 +65,7 @@ func getFuncByType(k reflect.Type) DefaultValueFunc {
 }
 
 func getDefaultValueAndCheckEmbedded(v reflect.Value) (tv reflect.Value, ok bool) {
-	if !implDefaultInitValue(v.Type()) {
+	if !implDefaultInitValue(v.Type()) || (v.Type().Kind() == reflect.Ptr && v.IsZero()) {
 		return
 	}
 	t := v.Type()
@@ -94,17 +93,15 @@ func getDefaultValueAndCheckEmbedded(v reflect.Value) (tv reflect.Value, ok bool
 }
 
 func bindValue(v reflect.Value, tag string) {
-	if v == ZeroValue || v.IsZero() {
-		return
-	}
 	t := v.Type()
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Ptr && !v.IsZero() {
 		t = v.Elem().Type()
 	}
 	if tv, ok := getDefaultValueAndCheckEmbedded(v); ok {
 		//dv, _ := v.Interface().(DefaultInitValue)
 		////TODO 此处无法判断 指针类型带来的接口实现 会造成 default 执行报错,暂时利用深层以上方式 检测内嵌field是否实现了接口。
 		//tv := dv.Default()
+
 		if v.Type().Kind() == reflect.Ptr {
 			if tv.Type() == t {
 				v.Elem().Set(tv)
@@ -119,7 +116,6 @@ func bindValue(v reflect.Value, tag string) {
 				v.Set(tv)
 				return
 			} else {
-				log.Println(tv.Type())
 			}
 		}
 
@@ -127,11 +123,11 @@ func bindValue(v reflect.Value, tag string) {
 	if t.Kind() == reflect.Struct {
 		for i := 0; i < t.NumField(); i++ {
 			if v.Type().Kind() == reflect.Ptr {
-				if v.Elem().Field(i).Kind() != reflect.Ptr && canDefaultBind(v.Elem().Type().Field(i), tag) && !checkSampleValue(v.Elem().Field(i), v.Elem().Type().Field(i), tag) {
+				if canDefaultBind(v.Elem().Type().Field(i), tag) && !checkSampleValue(v.Elem().Field(i), v.Elem().Type().Field(i), tag) {
 					bindValue(v.Elem().Field(i), tag)
 				}
 			} else {
-				if v.Field(i).Kind() != reflect.Ptr && canDefaultBind(v.Type().Field(i), tag) && !checkSampleValue(v.Field(i), v.Type().Field(i), tag) {
+				if canDefaultBind(v.Type().Field(i), tag) && !checkSampleValue(v.Field(i), v.Type().Field(i), tag) {
 					bindValue(v.Field(i), tag)
 				}
 			}

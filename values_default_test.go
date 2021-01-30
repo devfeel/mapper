@@ -22,8 +22,8 @@ type InfoForDefaultValueFunc struct {
 	Name string `default:"123"`
 }
 type Info struct {
-	Ext        string  `default:"aaa"`
 	Name       string  `default:"123"`
+	Ext        string  `default:"aaa"`
 	BoolFalse  bool    `default:"false"`
 	BoolTrue   bool    `default:"true"`
 	Float      float32 `default:"12.21"`
@@ -34,14 +34,14 @@ type Info struct {
 }
 
 func (s AnyInfo) Default() reflect.Value {
-	return reflect.ValueOf(AnyInfo{AnyInfoName: "test anyInfo name"})
+	return reflect.ValueOf(AnyInfo{AnyInfoName: "test anyInfo name~~~~"})
 }
 
 type AnyInfo struct {
-	AnyInfoName string `default:"anyInfo"`
+	AnyInfoName string `default:"dddddanyInfo"`
 }
 type ShowInfo struct {
-	Name string `default:"name"`
+	//Name string `default:"name"`
 	Info
 	*AnyInfo
 	AnyInfo2                AnyInfo
@@ -50,15 +50,23 @@ type ShowInfo struct {
 }
 
 func TestBindDefaultValue(t *testing.T) {
+	t0 := time.Now()
 	var s ShowInfo
 	BindDefaultValue(&s)
 	data, _ := json.Marshal(s)
-	log.Printf("%s", data)
+	log.Printf("%s %v", data, time.Now().Sub(t0))
 }
 
 func BenchmarkBindDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var s ShowInfo
 		BindDefaultValue(&s)
+	}
+}
+func BenchmarkBindDefaultValue2(b *testing.B) {
+	data := []byte(`{"Name":"123","Ext":"aaa","BoolFalse":false,"BoolTrue":true,"Float":12.21,"Float64":12.51,"Int":132,"Int64":132,"NumberUint":12,"AnyInfo2":{"AnyInfoName":"test anyInfo name~~~~"},"InfoForDefaultValueFunc":{"Ext":"aaa","Name":"123"},"CreateTime":"2020-01-02T03:04:01+08:00"}`)
+	for i := 0; i < b.N; i++ {
+		var s ShowInfo
+		_ = json.Unmarshal(data, &s)
 	}
 }
