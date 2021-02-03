@@ -65,7 +65,7 @@ func getFuncByType(k reflect.Type) DefaultValueFunc {
 }
 
 func getDefaultValueAndCheckEmbedded(v reflect.Value) (tv reflect.Value, ok bool) {
-	if !implDefaultInitValue(v.Type()) || (v.Type().Kind() == reflect.Ptr && v.IsZero()) {
+	if !implDefaultInitValue(v.Type()) || (v.Type().Kind() == reflect.Ptr && v.Elem() == ZeroValue) {
 		return
 	}
 	t := v.Type()
@@ -94,7 +94,7 @@ func getDefaultValueAndCheckEmbedded(v reflect.Value) (tv reflect.Value, ok bool
 
 func bindValue(v reflect.Value, tag string) {
 	t := v.Type()
-	if t.Kind() == reflect.Ptr && !v.IsZero() {
+	if t.Kind() == reflect.Ptr && v.Elem() != ZeroValue {
 		t = v.Elem().Type()
 	}
 	if tv, ok := getDefaultValueAndCheckEmbedded(v); ok {
