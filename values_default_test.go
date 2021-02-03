@@ -20,6 +20,8 @@ func init() {
 type InfoForDefaultValueFunc struct {
 	Ext  string `default:"aaa"`
 	Name string `default:"123"`
+	AA   string `default:"aaaaaa"`
+	Int  int    `default:"12*11"`
 }
 type Info struct {
 	Name       string  `default:"123"`
@@ -40,11 +42,18 @@ func (s AnyInfo) Default() reflect.Value {
 type AnyInfo struct {
 	AnyInfoName string `default:"dddddanyInfo"`
 }
+type ReStr string
+type ReInt int
+type ReInfo Info
+type ReBool bool
 type ShowInfo struct {
-	//Name string `default:"name"`
 	Info
 	*AnyInfo
+	ReInfo                  ReInfo
 	AnyInfo2                AnyInfo
+	ReInt                   ReInt  `default:"10"`
+	ReStr                   ReStr  `default:"reStr"`
+	ReBool                  ReBool `default:"true"`
 	InfoForDefaultValueFunc InfoForDefaultValueFunc
 	CreateTime              time.Time `default:"2020-01-02 03:04:01"`
 }
@@ -54,12 +63,13 @@ func TestBindDefaultValue(t *testing.T) {
 	var s ShowInfo
 	BindDefaultValue(&s)
 	data, _ := json.Marshal(s)
+	log.Printf("%+v", s)
 	log.Printf("%s %v", data, time.Now().Sub(t0))
 }
 
 func BenchmarkBindDefaultValue(b *testing.B) {
+	var s InfoForDefaultValueFunc
 	for i := 0; i < b.N; i++ {
-		var s ShowInfo
 		BindDefaultValue(&s)
 	}
 }

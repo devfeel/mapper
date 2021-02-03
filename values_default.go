@@ -160,7 +160,7 @@ func checkSampleValue(v reflect.Value, field reflect.StructField, tag string) (o
 				} else {
 					switch v.Kind() {
 					case reflect.String:
-						v.Set(strFunc(tagValue))
+						v.SetString(strFunc(tagValue).String())
 						ok = true
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 						v.SetInt(int64Func(tagValue).Int())
