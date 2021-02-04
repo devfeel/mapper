@@ -13,16 +13,15 @@ func strFunc(str string) reflect.Value {
 
 //Support computing
 func int64Func(str string) reflect.Value {
-	//exp, err := parser.ParseExpr(str)
-	//if err == nil {
-	//	fset := token.NewFileSet()
-	//	_ = ast.Print(fset, exp)
-	//}
+	str = strings.TrimSpace(str)
 	if strings.Contains(str, "*") {
 		ss := strings.Split(str, "*")
-		a, _ := strconv.ParseInt(strings.TrimSpace(ss[0]), 10, 64)
-		b, _ := strconv.ParseInt(strings.TrimSpace(ss[1]), 10, 64)
-		return reflect.ValueOf(a * b)
+		var r int64
+		r = 1
+		for _, s := range ss {
+			r = r * int64Func(s).Int()
+		}
+		return reflect.ValueOf(r)
 	} else {
 		r, _ := strconv.ParseInt(str, 10, 64)
 		return reflect.ValueOf(r)
