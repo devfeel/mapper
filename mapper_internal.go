@@ -203,16 +203,20 @@ func setFieldValue(fieldValue reflect.Value, fieldKind reflect.Kind, value inter
 func getStructTag(field reflect.StructField) string {
 	tagValue := ""
 	//1.check mapperTagKey
-	tagValue = field.Tag.Get(mapperTagKey)
-	if checkTagValidity(tagValue) {
-		return tagValue
+	if enabledMapperTag {
+		tagValue = field.Tag.Get(mapperTagKey)
+		if checkTagValidity(tagValue) {
+			return tagValue
+		}
 	}
 
 	//2.check jsonTagKey
-	tagValue = field.Tag.Get(jsonTagKey)
-	if checkTagValidity(tagValue) {
-		// support more tag property, as json tag omitempty 2018-07-13
-		return strings.Split(tagValue, ",")[0]
+	if enabledJsonTag {
+		tagValue = field.Tag.Get(jsonTagKey)
+		if checkTagValidity(tagValue) {
+			// support more tag property, as json tag omitempty 2018-07-13
+			return strings.Split(tagValue, ",")[0]
+		}
 	}
 
 	return ""

@@ -29,6 +29,11 @@ type (
 		Sex  bool
 		BB   string
 	}
+
+	TagStruct struct {
+		Name string `mapper:"UserName"`
+		Sex  bool   `json:"UserSex"`
+	}
 )
 
 var testValue reflect.Value
@@ -58,6 +63,62 @@ func Test_GetTypeName(t *testing.T) {
 func BenchmarkGetTypeName(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		GetTypeName(&testStruct{})
+	}
+}
+
+func Test_GetFieldNameFromMapperTag(t *testing.T) {
+	v := TagStruct{}
+	fieldName := GetFieldName(reflect.ValueOf(v), 0)
+	if fieldName == "UserName" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
+	}
+}
+
+func Test_GetFieldNameFromJsonTag(t *testing.T) {
+	v := TagStruct{}
+	fieldName := GetFieldName(reflect.ValueOf(v), 1)
+	if fieldName == "UserSex" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
+	}
+}
+
+func Test_SetEnableMapperTag(t *testing.T) {
+	v := TagStruct{}
+	SetEnabledMapperTag(false)
+	fieldName := GetFieldName(reflect.ValueOf(v), 0)
+	if fieldName == "Name" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
+	}
+	SetEnabledMapperTag(true)
+	fieldName = GetFieldName(reflect.ValueOf(v), 0)
+	if fieldName == "UserName" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
+	}
+}
+
+func Test_SetEnableJsonTag(t *testing.T) {
+	v := TagStruct{}
+	SetEnabledJsonTag(false)
+	fieldName := GetFieldName(reflect.ValueOf(v), 1)
+	if fieldName == "Sex" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
+	}
+	SetEnabledJsonTag(true)
+	fieldName = GetFieldName(reflect.ValueOf(v), 1)
+	if fieldName == "UserSex" {
+		t.Log("RunResult success:", fieldName)
+	} else {
+		t.Error("RunResult error: fieldName not match", fieldName)
 	}
 }
 

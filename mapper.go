@@ -16,13 +16,15 @@ var (
 	enabledTypeChecking      bool
 	enabledMapperStructField bool
 	enabledAutoTypeConvert   bool
+	enabledMapperTag         bool
+	enabledJsonTag           bool
 	timeType                 = reflect.TypeOf(time.Now())
 	jsonTimeType             = reflect.TypeOf(JSONTime(time.Now()))
 	typeWrappers             []TypeWrapper
 )
 
 const (
-	packageVersion = "0.7.5"
+	packageVersion = "0.7.6"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	IgnoreTagValue = "-"
@@ -41,6 +43,8 @@ func init() {
 	enabledTypeChecking = false
 	enabledMapperStructField = true
 	enabledAutoTypeConvert = true
+	enabledMapperTag = true
+	enabledJsonTag = true
 }
 
 func PackageVersion() string {
@@ -70,6 +74,20 @@ func CheckIsTypeWrapper(value reflect.Value) bool {
 // default is false
 func SetEnabledTypeChecking(isEnabled bool) {
 	enabledTypeChecking = isEnabled
+}
+
+// SetEnabledTypeChecking set enabled flag for 'Mapper' tag check
+// if set true, 'Mapper' tag will be check during mapping's GetFieldName
+// default is true
+func SetEnabledMapperTag(isEnabled bool) {
+	enabledMapperTag = isEnabled
+}
+
+// SetEnabledJsonTag set enabled flag for 'Json' tag check
+// if set true, 'Json' tag will be check during mapping's GetFieldName
+// default is true
+func SetEnabledJsonTag(isEnabled bool) {
+	enabledJsonTag = isEnabled
 }
 
 // SetEnabledAutoTypeConvert set enabled flag for auto type convert

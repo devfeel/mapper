@@ -1,5 +1,12 @@
 ## devfeel/mapper
 
+#### Version 0.7.6
+* Feature: add SetEnabledMapperTag to set enabled flag for 'Mapper' tag check
+* Feature: add SetEnabledJsonTag to set enabled flag for 'Json' tag check
+* Ops: add some test cases
+* Tips: Thanks to @aeramu for issue #12 
+* 2021-10-19 12:00 in ShangHai
+
 #### Version 0.7.5
 * Feature: Support for *[] to *[] with MapperSlice
 * Ops: Definitive error messages
