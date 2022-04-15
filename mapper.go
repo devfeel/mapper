@@ -23,16 +23,36 @@ var (
 	typeWrappers             []TypeWrapper
 )
 
-const (
-	packageVersion = "0.7.6"
-	mapperTagKey   = "mapper"
-	jsonTagKey     = "json"
-	IgnoreTagValue = "-"
-	nameConnector  = "_"
-	formatTime     = "15:04:05"
-	formatDate     = "2006-01-02"
-	formatDateTime = "2006-01-02 15:04:05"
-)
+type IMapper interface {
+	Mapper(fromObj, toObj interface{}) error
+	AutoMapper(fromObj, toObj interface{}) error
+	MapperMap(fromMap map[string]interface{}, toObj interface{}) error
+	Register(obj interface{}) error
+	GetTypeName(obj interface{}) string
+	GetFieldName(objElem reflect.Value, index int) string
+	GetDefaultTimeWrapper() *TimeWrapper
+	CheckExistsField(elem reflect.Value, fieldName string) (realFieldName string, exists bool)
+	MapToSlice(fromMap map[string]interface{}, toSlice interface{}) error
+	MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interface{}) error
+	MapperSlice(fromSlice, toSlice interface{}) error
+	MapToJson(fromMap map[string]interface{}) ([]byte, error)
+	JsonToMap(body []byte, toMap *map[string]interface{}) error
+
+	SetEnabledTypeChecking(isEnabled bool)
+	IsEnabledTypeChecking() bool
+
+	SetEnabledMapperTag(isEnabled bool)
+	IsEnabledMapperTag() bool
+
+	SetEnabledJsonTag(isEnabled bool)
+	IsEnabledJsonTag() bool
+
+	SetEnabledAutoTypeConvert(isEnabled bool)
+	IsEnabledAutoTypeConvert() bool
+
+	SetEnabledMapperStructField(isEnabled bool)
+	IsEnabledMapperStructField() bool
+}
 
 func init() {
 	ZeroValue = reflect.Value{}
@@ -136,7 +156,7 @@ func registerValue(objValue reflect.Value) error {
 		}
 	}
 
-	//store register flag
+	// store register flag
 	registerMap.Store(typeName, nil)
 	return nil
 }
@@ -194,14 +214,14 @@ func MapperMap(fromMap map[string]interface{}, toObj interface{}) error {
 	if toElem == ZeroValue {
 		return errors.New("to obj is not legal value")
 	}
-	//check register flag
-	//if not register, register it
+	// check register flag
+	// if not register, register it
 	if !checkIsRegister(toElem) {
 		Register(toObj)
 	}
 	for k, v := range fromMap {
 		fieldName := k
-		//check field is exists
+		// check field is exists
 		realFieldName, exists := CheckExistsField(toElem, fieldName)
 		if !exists {
 			continue
@@ -274,7 +294,7 @@ func MapperMapSlice(fromMaps map[string]map[string]interface{}, toSlice interfac
 	toElemType := reflect.TypeOf(toSlice).Elem().Elem()
 	realType := toElemType.Kind()
 	direct := reflect.Indirect(toValue)
-	//3 elem parse: 1.[]*type 2.*type 3.type
+	// 3 elem parse: 1.[]*type 2.*type 3.type
 	if realType == reflect.Ptr {
 		toElemType = toElemType.Elem()
 	}
@@ -307,7 +327,7 @@ func MapperSlice(fromSlice, toSlice interface{}) error {
 	elemType := reflect.TypeOf(toSlice).Elem().Elem()
 	realType := elemType.Kind()
 	direct := reflect.Indirect(toValue)
-	//3 elem parse: 1.[]*type 2.*type 3.type
+	// 3 elem parse: 1.[]*type 2.*type 3.type
 	if realType == reflect.Ptr {
 		elemType = elemType.Elem()
 	}
