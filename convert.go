@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -22,12 +23,12 @@ func (f *Convert) Set(v string) {
 
 // Clear string
 func (f *Convert) Clear() {
-	*f = Convert(0x1E)
+	*f = Convert(hex.EncodeToString([]byte{0x1E}))
 }
 
 // Exist check string exist
 func (f Convert) Exist() bool {
-	return string(f) != string(0x1E)
+	return string(f) != hex.EncodeToString([]byte{0x1E})
 }
 
 // Bool string to bool
