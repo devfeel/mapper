@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/devfeel/mapper"
 	"reflect"
 	"time"
 )
@@ -26,7 +28,7 @@ type decimal struct {
 }
 
 type DecimalWrapper struct {
-	// mapper.BaseTypeWrapper
+	mapper.BaseTypeWrapper
 }
 
 func (w *DecimalWrapper) IsType(value reflect.Value) bool {
@@ -37,14 +39,12 @@ func (w *DecimalWrapper) IsType(value reflect.Value) bool {
 }
 
 func main() {
-	/*
-		mapper.UseWrapper(&DecimalWrapper{})
-		user := &User{Name: "test", Age: 10, Score: decimal{value: 1}, Time: time.Now()}
-		stu := &Student{}
+	mapper.UseWrapper(&DecimalWrapper{})
+	user := &User{Name: "test", Age: 10, Score: decimal{value: 1}, Time: time.Now()}
+	stu := &Student{}
 
-		mapper.AutoMapper(user, stu)
+	mapper.AutoMapper(user, stu)
 
-		fmt.Println(user)
-		fmt.Println(stu)
-	*/
+	fmt.Println(user)
+	fmt.Println(stu)
 }
