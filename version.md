@@ -1,5 +1,54 @@
 ## devfeel/mapper
 
+#### Version 0.7.7
+* Feature: add Object-oriented interface for the mapper. 
+* comment: the old version implementation will be refactored in next release.
+* Tips: Thanks to @shyandsy
+* About the new feature::
+```
+ package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/devfeel/mapper"
+)
+type (
+	User struct {
+		Name     string `json:"name" mapper:"name"`
+		Age      int    `json:"age" mapper:"age"`
+	}
+
+	Student struct {
+		Name  string `json:"name" mapper:"name"`
+		Age   int    `json:"age" mapper:"-"`
+	}
+)
+
+func main() {
+	user := &User{Name: "test", Age: 10}
+	student := &Student{}
+
+	// create mapper object
+	m := mapper.NewMapper()
+
+	// enable the type checking
+	m.SetEnabledTypeChecking(true)
+
+	student.Age = 1
+
+	// disable the json tag
+	m.SetEnabledJsonTag(false)
+
+	// student::age should be 1
+	m.Mapper(user, student)
+
+	fmt.Println(student)
+}
+```
+* 2022-04-15 23:00 in ShangHai
+
 #### Version 0.7.6
 * Feature: add SetEnabledMapperTag to set enabled flag for 'Mapper' tag check
 * Feature: add SetEnabledJsonTag to set enabled flag for 'Json' tag check

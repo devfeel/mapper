@@ -1,4 +1,5 @@
 # devfeel/mapper
+
 A simple and easy go tools for auto mapper struct to map, struct to struct, slice to slice, map to slice, map to json.
 
 ## 1. Install
@@ -8,6 +9,8 @@ go get -u github.com/devfeel/mapper
 ```
 
 ## 2. Getting Started
+
+Traditional Usage
 ```go
 package main
 
@@ -66,8 +69,8 @@ func main() {
 	fmt.Println("teacher", teacher)
 	fmt.Println("userMap:", userMap)
 }
-
 ```
+
 执行main，输出：
 ```
 student: &{test 10 testId 100}
@@ -76,7 +79,59 @@ teacher &{test 10 testId }
 userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001}
 ```
 
+Object Usage
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/devfeel/mapper"
+)
+
+type (
+  User struct {
+    Name     string `json:"name" mapper:"name"`
+    Age      int    `json:"age" mapper:"age"`
+  }
+
+  Student struct {
+    Name  string `json:"name" mapper:"name"`
+    Age   int    `json:"age" mapper:"-"`
+  }
+)
+
+func main() {
+  user := &User{Name: "test", Age: 10}
+  student := &Student{}
+
+  // create mapper object
+  m := mapper.NewMapper()
+
+  // enable the type checking
+  m.SetEnabledTypeChecking(true)
+
+  student.Age = 1
+
+  // disable the json tag
+  m.SetEnabledJsonTag(false)
+
+  // student::age should be 1
+  m.Mapper(user, student)
+
+  fmt.Println(student)
+}
+```
+
+执行main，输出：
+```
+&{test 1}
+```
+
+
+
 ## Features
+
 * 支持不同结构体相同名称相同类型字段自动赋值，使用Mapper
 * 支持不同结构体Slice的自动赋值，使用MapperSlice
 * 支持字段为结构体时的自动赋值
@@ -89,3 +144,14 @@ userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001
 * 兼容json-tag标签
 * 当tag为"-"时，将忽略tag定义，使用struct field name
 * 无需手动Register struct，内部自动识别
+* 支持开启关闭
+  * SetEnabledTypeChecking(bool)   // 类型检查
+  * IsEnabledTypeChecking 
+  * SetEnabledMapperTag            // mapper tag
+  * IsEnabledMapperTag
+  * SetEnabledJsonTag              // json tag
+  * IsEnabledJsonTag
+  * SetEnabledAutoTypeConvert      // auto type convert
+  * IsEnabledAutoTypeConvert
+  * SetEnabledMapperStructField    // mapper struct field
+  * IsEnabledMapperStructField
