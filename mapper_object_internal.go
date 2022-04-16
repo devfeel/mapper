@@ -102,7 +102,7 @@ func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 			x := reflect.New(toFieldInfo.Type()).Elem()
 			err := dm.elemMapper(fromFieldInfo, x)
 			if err != nil {
-				fmt.Println("auto mapper field", fromFieldInfo, "=>", toFieldInfo, "error", err.Error())
+				fmt.Println("auto mapper failed", fromFieldInfo, "=>", toFieldInfo, "error", err.Error())
 			} else {
 				toFieldInfo.Set(x)
 			}

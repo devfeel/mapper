@@ -1,11 +1,16 @@
 ## devfeel/mapper
 
+#### Version 0.7.8
+* Refactor: use mapperObject refactored the static version implementation.
+* 2022-04-16 10:00 in ShangHai
+
+
 #### Version 0.7.7
 * Feature: add Object-oriented interface for the mapper. 
 * comment: the old version implementation will be refactored in next release.
 * Tips: Thanks to @shyandsy
 * About the new feature::
-```
+``` go
  package main
 
 import (
@@ -66,7 +71,7 @@ func main() {
 * Feature: AutoMapper&Mapper support mapper struct to map[string]interface{}
 * Refactor: set MapperMapSlice to Deprecated, will remove on v1.0
 * About AutoMapper::
-  ```
+  ``` go
   func Test_AutoMapper_StructToMap(t *testing.T) {
   	from := &FromStruct{Name: "From", Sex: true, AA: "AA"}
   	to := make(map[string]interface{})
@@ -88,7 +93,7 @@ func main() {
 * Feature: add MapToSlice to mapper from map[string]interface{} to a slice of any type's ptr
 * Refactor: set MapperMapSlice to Deprecated, will remove on v1.0
 * About MapToSlice::
-  ```
+  ``` go
   func Test_MapToSlice(t *testing.T) {
   	var toSlice []*testStruct
   	/*fromMaps := make(map[string]interface{})
@@ -124,15 +129,15 @@ func main() {
   - now support two slice's element type is ptr or struct in MapperSlice
   - now support slice's element type is ptr or struct in MapperMapSlice
   - About MapperMapSlice:
-  ```golang
+``` go
     //view test code in mapper_test.go:Test_MapperSlice\Test_MapperStructSlice
     //type ptr
     var toSlice []*testStruct
     //type struct
     var toSlice []testStruct
-  ```
+ ```
   - About MapperSlice:
-  ```golang
+``` golang
     //view test code in mapper_test.go:Test_MapperMapSlice\Test_MapperStructMapSlice
     //type ptr
     var fromSlice []*FromStruct
@@ -140,7 +145,7 @@ func main() {
     //type struct
     var fromSlice []FromStruct
     var toSlice []ToStruct
-  ```
+ ```
 * 2019-11-03 16:00 in ShangHai
 
 #### Version 0.7.1
@@ -161,7 +166,7 @@ func main() {
   - it will effective when you use Mapper or MapperMap
   - default is enabled
 * Example:
-```golang
+``` go
     type ProductBasic struct {
         ProductId    int64
         CreateTime   time.Time
@@ -186,7 +191,7 @@ func main() {
 * New Feature: Add MapToJson to mapper from map[string]interface{} to json []byte
 * New Feature: Add JsonToMap mapper from json []byte to map[string]interface{}
 * Example:
-```golang
+``` go
     // MapToJson
     fromMap := make(map[string]interface{})
     fromMap["Name"] = "test"
