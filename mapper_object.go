@@ -199,6 +199,14 @@ func (dm *mapperObject) Register(obj interface{}) error {
 	return dm.registerValue(objValue)
 }
 
+// UseWrapper register a type wrapper
+func (dm *mapperObject) UseWrapper(w TypeWrapper) {
+	if len(dm.typeWrappers) > 0 {
+		dm.typeWrappers[len(dm.typeWrappers)-1].SetNext(w)
+	}
+	dm.typeWrappers = append(dm.typeWrappers, w)
+}
+
 // MapToSlice mapper from map[string]interface{} to a slice of any type's ptr
 // toSlice must be a slice of any type.
 func (dm *mapperObject) MapToSlice(fromMap map[string]interface{}, toSlice interface{}) error {
@@ -338,4 +346,14 @@ func (dm *mapperObject) CheckExistsField(elem reflect.Value, fieldName string) (
 	} else {
 		return realName.(string), isOk
 	}
+}
+
+// CheckIsTypeWrapper check value is in type wrappers
+func (dm *mapperObject) CheckIsTypeWrapper(value reflect.Value) bool {
+	for _, w := range dm.typeWrappers {
+		if w.IsType(value) {
+			return true
+		}
+	}
+	return false
 }
