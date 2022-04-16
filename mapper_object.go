@@ -339,3 +339,13 @@ func (dm *mapperObject) CheckExistsField(elem reflect.Value, fieldName string) (
 		return realName.(string), isOk
 	}
 }
+
+// CheckIsTypeWrapper check value is in type wrappers
+func (dm *mapperObject) CheckIsTypeWrapper(value reflect.Value) bool {
+	for _, w := range dm.typeWrappers {
+		if w.IsType(value) {
+			return true
+		}
+	}
+	return false
+}

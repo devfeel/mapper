@@ -42,9 +42,36 @@ func init() {
 	testValue = reflect.ValueOf(&testStruct{})
 }
 
+func Test_CheckIsTypeWrapper(t *testing.T) {
+	v := TagStruct{}
+	if standardMapper.CheckIsTypeWrapper(reflect.ValueOf(v)) == true {
+		t.Error("CheckIsTypeWrapper error: set true but query is not true")
+	} else {
+		t.Log("CheckIsTypeWrapper success")
+	}
+}
+
+func Test_SetEnabledMapperStructField(t *testing.T) {
+	SetEnabledMapperStructField(true)
+	if standardMapper.IsEnabledMapperStructField() != true {
+		t.Error("SetEnabledMapperStructField error: set true but query is not true")
+	} else {
+		t.Log("SetEnabledMapperStructField success")
+	}
+}
+
+func Test_SetEnabledAutoTypeConvert(t *testing.T) {
+	SetEnabledAutoTypeConvert(true)
+	if standardMapper.IsEnabledAutoTypeConvert() != true {
+		t.Error("SetEnabledAutoTypeConvert error: set true but query is not true")
+	} else {
+		t.Log("SetEnabledAutoTypeConvert success")
+	}
+}
+
 func Test_SetEnabledTypeChecking(t *testing.T) {
 	SetEnabledTypeChecking(true)
-	if enabledTypeChecking != true {
+	if standardMapper.IsEnabledTypeChecking() != true {
 		t.Error("SetEnabledTypeChecking error: set true but query is not true")
 	} else {
 		t.Log("SetEnabledTypeChecking success")
@@ -376,7 +403,7 @@ func Test_MapperStructMapSlice(t *testing.T) {
 
 func Test_IsTimeField(t *testing.T) {
 	t1 := time.Now()
-	if DefaultTimeWrapper.IsType(reflect.ValueOf(t1)) {
+	if standardMapper.GetDefaultTimeWrapper().IsType(reflect.ValueOf(t1)) {
 		t.Log("check time.Now ok")
 	} else {
 		t.Error("check time.Now error")
@@ -384,7 +411,7 @@ func Test_IsTimeField(t *testing.T) {
 
 	var t2 JSONTime
 	t2 = JSONTime(time.Now())
-	if DefaultTimeWrapper.IsType(reflect.ValueOf(t2)) {
+	if standardMapper.GetDefaultTimeWrapper().IsType(reflect.ValueOf(t2)) {
 		t.Log("check mapper.Time ok")
 	} else {
 		t.Error("check mapper.Time error")
