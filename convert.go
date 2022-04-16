@@ -186,7 +186,7 @@ func ToInt64(value interface{}) (d int64) {
 
 type argInt []int
 
-// get int by index from int slice
+// Get int by index from int slice
 func (a argInt) Get(i int, args ...int) (r int) {
 	if i >= 0 && i < len(a) {
 		r = a[i]

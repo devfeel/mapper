@@ -19,6 +19,7 @@ type IMapper interface {
 	JsonToMap(body []byte, toMap *map[string]interface{}) error
 
 	Register(obj interface{}) error
+	UseWrapper(w TypeWrapper)
 
 	GetTypeName(obj interface{}) string
 	GetFieldName(objElem reflect.Value, index int) string
@@ -49,6 +50,11 @@ func init() {
 
 func PackageVersion() string {
 	return packageVersion
+}
+
+// UseWrapper register a type wrapper
+func UseWrapper(w TypeWrapper) {
+	standardMapper.UseWrapper(w)
 }
 
 // CheckIsTypeWrapper check value is in type wrappers
