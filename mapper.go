@@ -43,8 +43,8 @@ type IMapper interface {
 	SetEnabledMapperStructField(isEnabled bool)
 	IsEnabledMapperStructField() bool
 
-	SetEnableIgnoreFieldTag(isEnabled bool)
-	IsEnableIgnoreFieldTag() bool
+	SetEnableFieldIgnoreTag(isEnabled bool)
+	IsEnableFieldIgnoreTag() bool
 }
 
 func init() {
@@ -103,12 +103,12 @@ func SetEnabledMapperStructField(isEnabled bool) {
 	standardMapper.SetEnabledMapperStructField(isEnabled)
 }
 
-// SetEnableIgnoreFieldTag set the enabled flag for the ignored tag
+// SetEnableFieldIgnoreTag set the enabled flag for the ignored tag
 // in the version < 0.7.8, we use field name as the key when mapping structs if field tag is "-"
-// from 0.7.8, we add switch enableIgnoreFieldTag which is false in default
+// from 0.7.8, we add switch enableFieldIgnoreTag which is false in default
 // if caller enable this flag, the field will be ignored in the mapping process
-func SetEnableIgnoreFieldTag(isEnabled bool) {
-	standardMapper.SetEnableIgnoreFieldTag(isEnabled)
+func SetEnableFieldIgnoreTag(isEnabled bool) {
+	standardMapper.SetEnableFieldIgnoreTag(isEnabled)
 }
 
 // Register register struct to init Map

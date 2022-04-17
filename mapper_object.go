@@ -25,7 +25,7 @@ type mapperObject struct {
 	// in the version < 0.7.8, we use field name as the key when mapping structs if field tag is "-"
 	// from 0.7.8, we add switch enableIgnoreFieldTag which is false in default
 	// if caller enable this flag, the field will be ignored in the mapping process
-	enableIgnoreFieldTag bool
+	enableFieldIgnoreTag bool
 }
 
 func NewMapper() IMapper {
@@ -40,7 +40,7 @@ func NewMapper() IMapper {
 		enabledAutoTypeConvert:   true,
 		enabledMapperTag:         true,
 		enabledJsonTag:           true,
-		enableIgnoreFieldTag:     false, // 保留老版本默认行为：对于tag = “-”的字段使用FieldName
+		enableFieldIgnoreTag:     false, // 保留老版本默认行为：对于tag = “-”的字段使用FieldName
 	}
 	dm.useWrapper(dm.DefaultTimeWrapper)
 	return &dm
@@ -172,16 +172,16 @@ func (dm *mapperObject) IsEnabledMapperStructField() bool {
 	return dm.enabledMapperStructField
 }
 
-// SetEnableIgnoreFieldTag set the enabled flag for the ignored tag
+// SetEnableFieldIgnoreTag set the enabled flag for the ignored tag
 // in the version < 0.7.8, we use field name as the key when mapping structs if field tag is "-"
-// from 0.7.8, we add switch enableIgnoreFieldTag which is false in default
+// from 0.7.8, we add switch enableFieldIgnoreTag which is false in default
 // if caller enable this flag, the field will be ignored in the mapping process
-func (dm *mapperObject) SetEnableIgnoreFieldTag(isEnabled bool) {
-	dm.enableIgnoreFieldTag = isEnabled
+func (dm *mapperObject) SetEnableFieldIgnoreTag(isEnabled bool) {
+	dm.enableFieldIgnoreTag = isEnabled
 }
 
-func (dm *mapperObject) IsEnableIgnoreFieldTag() bool {
-	return dm.enableIgnoreFieldTag
+func (dm *mapperObject) IsEnableFieldIgnoreTag() bool {
+	return dm.enableFieldIgnoreTag
 }
 
 // GetTypeName get type name

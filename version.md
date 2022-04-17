@@ -1,5 +1,11 @@
 ## devfeel/mapper
 
+#### Version 0.7.9
+* Feature: add feature flag for ignore tag.
+* Tips: about "-" we keep default behavior as previous version by default, which is use field name as key when mapping structure.
+* Tips: now you can use SetEnableFieldIgnoreTag function to enable this flag right now
+* 2022-04-17 21:00 in ShangHai
+
 #### Version 0.7.8
 * Refactor: use mapperObject refactored the static version implementation.
 * 2022-04-16 10:00 in ShangHai

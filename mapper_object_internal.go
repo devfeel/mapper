@@ -45,7 +45,7 @@ func (dm *mapperObject) getFieldName(objElem reflect.Value, index int) string {
 	tag := dm.getStructTag(field)
 
 	// keeps the behavior in old version
-	if !dm.enableIgnoreFieldTag && tag == IgnoreTagValue {
+	if tag == IgnoreTagValue && !dm.IsEnableFieldIgnoreTag() {
 		tag = ""
 	}
 
@@ -274,7 +274,7 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 	// 1.check mapperTagKey
 	if dm.enabledMapperTag {
 		tagValue = field.Tag.Get(mapperTagKey)
-		if dm.checkTagValidity(tagValue) {
+		if tagValue != "" {
 			return tagValue
 		}
 	}
@@ -282,7 +282,7 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 	// 2.check jsonTagKey
 	if dm.enabledJsonTag {
 		tagValue = field.Tag.Get(jsonTagKey)
-		if dm.checkTagValidity(tagValue) {
+		if tagValue != "" {
 			// support more tag property, as json tag omitempty 2018-07-13
 			return strings.Split(tagValue, ",")[0]
 		}
@@ -291,20 +291,13 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 	return tagValue
 }
 
-func (dm *mapperObject) checkTagValidity(tagValue string) bool {
-	if tagValue != "" && tagValue != IgnoreTagValue {
-		return true
-	}
-	return false
-}
-
 func (dm *mapperObject) checkIsRegister(objElem reflect.Value) bool {
 	typeName := objElem.Type().String()
 	_, isOk := dm.registerMap.Load(typeName)
 	return isOk
 }
 
-// convert slice interface{} to []interface{}
+// convertToSlice convert slice interface{} to []interface{}
 func (dm *mapperObject) convertToSlice(arr interface{}) []interface{} {
 	v := reflect.ValueOf(arr)
 	if v.Kind() == reflect.Ptr {
@@ -325,7 +318,7 @@ func (dm *mapperObject) convertToSlice(arr interface{}) []interface{} {
 	return ret
 }
 
-// CheckIsTypeWrapper check value is in type wrappers
+// checkIsTypeWrapper check value is in type wrappers
 func (dm *mapperObject) checkIsTypeWrapper(value reflect.Value) bool {
 	for _, w := range dm.typeWrappers {
 		if w.IsType(value) {
