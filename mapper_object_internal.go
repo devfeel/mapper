@@ -22,7 +22,11 @@ func (dm *mapperObject) registerValue(objValue reflect.Value) error {
 	typeName := regValue.Type().String()
 	if regValue.Type().Kind() == reflect.Struct {
 		for i := 0; i < regValue.NumField(); i++ {
-			mapFieldName := typeName + nameConnector + dm.getFieldName(regValue, i)
+			fieldName := dm.getFieldName(regValue, i)
+			if fieldName == IgnoreTagValue {
+				continue
+			}
+			mapFieldName := typeName + nameConnector + fieldName
 			realFieldName := regValue.Type().Field(i).Name
 			dm.fieldNameMap.Store(mapFieldName, realFieldName)
 		}
@@ -39,6 +43,12 @@ func (dm *mapperObject) getFieldName(objElem reflect.Value, index int) string {
 	fieldName := ""
 	field := objElem.Type().Field(index)
 	tag := dm.getStructTag(field)
+
+	// keeps the behavior in old version
+	if !dm.enableIgnoreFieldTag && tag == IgnoreTagValue {
+		tag = ""
+	}
+
 	if tag != "" {
 		fieldName = tag
 	} else {
@@ -81,6 +91,10 @@ func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
 		fieldName := dm.getFieldName(fromElem, i)
+		if fieldName == IgnoreTagValue {
+			continue
+		}
+
 		// check field is exists
 		realFieldName, exists := dm.CheckExistsField(toElem, fieldName)
 		if !exists {
@@ -131,6 +145,9 @@ func (dm *mapperObject) elemToMap(fromElem, toElem reflect.Value) {
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
 		fieldName := dm.getFieldName(fromElem, i)
+		if fieldName == IgnoreTagValue {
+			continue
+		}
 		toElem.SetMapIndex(reflect.ValueOf(fieldName), fromFieldInfo)
 	}
 }
@@ -271,7 +288,7 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 		}
 	}
 
-	return ""
+	return tagValue
 }
 
 func (dm *mapperObject) checkTagValidity(tagValue string) bool {
