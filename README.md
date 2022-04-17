@@ -11,7 +11,7 @@ go get -u github.com/devfeel/mapper
 ## 2. Getting Started
 
 Traditional Usage
-```go
+``` go
 package main
 
 import (
@@ -81,7 +81,7 @@ userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001
 
 Object Usage
 
-```go
+``` go
 package main
 
 import (
@@ -91,27 +91,30 @@ import (
 
 type (
   User struct {
-    Name     string `json:"name" mapper:"name"`
-    Age      int    `json:"age" mapper:"age"`
+    Name  string `json:"name" mapper:"name"`
+    Class int    `mapper:"class"`
+    Age   int    `json:"age" mapper:"-"`
   }
 
   Student struct {
     Name  string `json:"name" mapper:"name"`
-    Age   int    `json:"age" mapper:"-"`
+    Class int    `mapper:"class"`
+    Age   []int  `json:"age" mapper:"-"`
   }
 )
 
 func main() {
-  user := &User{Name: "test", Age: 10}
+  user := &User{Name: "shyandsy", Class: 1, Age: 10}
   student := &Student{}
 
   // create mapper object
   m := mapper.NewMapper()
 
-  // enable the type checking
-  m.SetEnabledTypeChecking(true)
+  // in the version < v0.7.8, we will use field name as key when mapping structs
+  // we keep it as default behavior in this version
+  m.SetEnableIgnoreFieldTag(true)
 
-  student.Age = 1
+  student.Age = []int{1}
 
   // disable the json tag
   m.SetEnabledJsonTag(false)
@@ -119,13 +122,19 @@ func main() {
   // student::age should be 1
   m.Mapper(user, student)
 
+  fmt.Println("user:")
+  fmt.Println(user)
+  fmt.Println("student:")
   fmt.Println(student)
 }
 ```
 
 执行main，输出：
 ```
-&{test 1}
+user:
+&{shyandsy 1 10}
+student:
+&{shyandsy 1 [1]}
 ```
 
 
