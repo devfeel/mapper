@@ -11,7 +11,7 @@ go get -u github.com/devfeel/mapper
 ## 2. Getting Started
 
 Traditional Usage
-```go
+``` go
 package main
 
 import (
@@ -81,7 +81,7 @@ userMap: &{map 10 x1asd 100 2017-11-20 13:45:56.3972504 +0800 CST m=+0.006004001
 
 Object Usage
 
-```go
+``` go
 package main
 
 import (

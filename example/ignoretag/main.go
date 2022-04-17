@@ -15,7 +15,7 @@ type (
 	Student struct {
 		Name  string `json:"name" mapper:"name"`
 		Class int    `mapper:"class"`
-		Age   []int  `json:"age" mapper:"-"`
+		Age   int    `json:"age" mapper:"-"`
 	}
 )
 
@@ -29,8 +29,6 @@ func main() {
 	// in the version < v0.7.8, we will use field name as key when mapping structs
 	// we keep it as default behavior in this version
 	m.SetEnableFieldIgnoreTag(true)
-
-	student.Age = []int{1}
 
 	// disable the json tag
 	m.SetEnabledJsonTag(false)
