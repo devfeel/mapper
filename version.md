@@ -1,5 +1,9 @@
 ## devfeel/mapper
 
+#### Version 0.7.10
+* BugFix: remove go mod file.
+* 2022-04-20 20:00 in ShangHai
+
 #### Version 0.7.9
 * Feature: add feature flag for ignore tag.
 * Tips: about "-" we keep default behavior as previous version by default, which is use field name as key when mapping structure.
