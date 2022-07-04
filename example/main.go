@@ -31,6 +31,11 @@ type (
 		Level string
 	}
 
+	Leader struct {
+		Name      string
+		LeaderAge int `form:"Age"`
+	}
+
 	JsonUser struct {
 		Name string
 		Age  int
@@ -39,8 +44,6 @@ type (
 )
 
 func init() {
-	mapper.Register(&User{})
-	mapper.Register(&Student{})
 }
 
 func main() {
@@ -73,6 +76,16 @@ func main() {
 		Age:  1,
 		Time: mapper.JSONTime(time.Now()),
 	}
+
+	user2 := &User{Name: "User2", Age: 35}
+	leader1 := &Leader{}
+	leader2 := &Leader{}
+	mapper.Mapper(user2, leader1)
+	fmt.Println("leader first:", leader1)
+	mapper.SetCustomTagName("form")
+	mapper.SetEnabledCustomTag(true)
+	mapper.Mapper(user2, leader2)
+	fmt.Println("leader second:", leader2)
 
 	fmt.Println(jsonUser)
 }

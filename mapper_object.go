@@ -22,6 +22,9 @@ type mapperObject struct {
 	enabledMapperTag         bool
 	enabledJsonTag           bool
 
+	enabledCustomTag bool
+	customTagName    string
+
 	// in the version < 0.7.8, we use field name as the key when mapping structs if field tag is "-"
 	// from 0.7.8, we add switch enableIgnoreFieldTag which is false in default
 	// if caller enable this flag, the field will be ignored in the mapping process
@@ -40,6 +43,7 @@ func NewMapper() IMapper {
 		enabledAutoTypeConvert:   true,
 		enabledMapperTag:         true,
 		enabledJsonTag:           true,
+		enabledCustomTag:         false,
 		enableFieldIgnoreTag:     false, // 保留老版本默认行为：对于tag = “-”的字段使用FieldName
 	}
 	dm.useWrapper(dm.DefaultTimeWrapper)
@@ -130,6 +134,7 @@ func (dm *mapperObject) IsEnabledTypeChecking() bool {
 // default is true
 func (dm *mapperObject) SetEnabledMapperTag(isEnabled bool) {
 	dm.enabledMapperTag = isEnabled
+	dm.cleanRegisterValue()
 }
 
 func (dm *mapperObject) IsEnabledMapperTag() bool {
@@ -141,6 +146,7 @@ func (dm *mapperObject) IsEnabledMapperTag() bool {
 // default is true
 func (dm *mapperObject) SetEnabledJsonTag(isEnabled bool) {
 	dm.enabledJsonTag = isEnabled
+	dm.cleanRegisterValue()
 }
 
 func (dm *mapperObject) IsEnabledJsonTag() bool {
@@ -170,6 +176,23 @@ func (dm *mapperObject) SetEnabledMapperStructField(isEnabled bool) {
 
 func (dm *mapperObject) IsEnabledMapperStructField() bool {
 	return dm.enabledMapperStructField
+}
+
+// SetEnabledCustomTag set enabled flag for set custom tag name
+// if set true and set customTagName, the custom tag will be check during mapping's GetFieldName
+// default is false
+func (dm *mapperObject) SetEnabledCustomTag(isEnabled bool) {
+	dm.enabledCustomTag = isEnabled
+	dm.cleanRegisterValue()
+}
+
+func (dm *mapperObject) IsEnabledCustomTag() bool {
+	return dm.enabledCustomTag
+}
+
+// SetCustomTagName
+func (dm *mapperObject) SetCustomTagName(tagName string) {
+	dm.customTagName = tagName
 }
 
 // SetEnableFieldIgnoreTag set the enabled flag for the ignored tag

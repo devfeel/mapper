@@ -1,7 +1,7 @@
 package mapper
 
 const (
-	packageVersion = "0.7.10"
+	packageVersion = "0.7.11"
 	mapperTagKey   = "mapper"
 	jsonTagKey     = "json"
 	IgnoreTagValue = "-"

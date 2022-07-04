@@ -37,6 +37,10 @@ type IMapper interface {
 	SetEnabledJsonTag(isEnabled bool)
 	IsEnabledJsonTag() bool
 
+	SetEnabledCustomTag(isEnabled bool)
+	IsEnabledCustomTag() bool
+	SetCustomTagName(tagName string)
+
 	SetEnabledAutoTypeConvert(isEnabled bool)
 	IsEnabledAutoTypeConvert() bool
 
@@ -84,6 +88,22 @@ func SetEnabledMapperTag(isEnabled bool) {
 // default is true
 func SetEnabledJsonTag(isEnabled bool) {
 	standardMapper.SetEnabledJsonTag(isEnabled)
+}
+
+// SetEnabledCustomTag set enabled flag for set custom tag name
+// if set true and set customTagName, the custom tag will be check during mapping's GetFieldName
+// default is false
+func SetEnabledCustomTag(isEnabled bool) {
+	standardMapper.SetEnabledCustomTag(isEnabled)
+}
+
+func IsEnabledCustomTag() bool {
+	return standardMapper.IsEnabledCustomTag()
+}
+
+// SetCustomTagName
+func SetCustomTagName(tagName string) {
+	standardMapper.SetCustomTagName(tagName)
 }
 
 // SetEnabledAutoTypeConvert set enabled flag for auto type convert

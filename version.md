@@ -1,5 +1,16 @@
 ## devfeel/mapper
 
+#### Version 0.7.11
+* BugFix: Fix the problem that getFieldName cannot take effect when the tag behavior is set dynamically.
+* Feature: Add SetEnabledCustomTag\SetCustomTagName to support custom tags, except mapper tag and json tag, for issue #34 
+* Tips: EnabledCustomTag default value is false.
+* you can use like this:
+``` go
+    mapper.SetCustomTagName("form")
+ 	mapper.SetEnabledCustomTag(true)
+```
+* 2022-07-04 18:00 in ShangHai
+
 #### Version 0.7.10
 * BugFix: remove go mod file.
 * 2022-04-20 20:00 in ShangHai
