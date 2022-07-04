@@ -37,13 +37,20 @@ func (dm *mapperObject) registerValue(objValue reflect.Value) error {
 	return nil
 }
 
+// cleanRegisterValue clean all register Value
+func (dm *mapperObject) cleanRegisterValue() {
+	dm.registerMap.Range(func(key, value interface{}) bool {
+		dm.registerMap.Delete(key)
+		return true
+	})
+}
+
 // GetFieldName get fieldName with ElemValue and index
 // if config tag string, return tag value
 func (dm *mapperObject) getFieldName(objElem reflect.Value, index int) string {
 	fieldName := ""
 	field := objElem.Type().Field(index)
 	tag := dm.getStructTag(field)
-
 	// keeps the behavior in old version
 	if tag == IgnoreTagValue && !dm.IsEnableFieldIgnoreTag() {
 		tag = ""
@@ -285,6 +292,15 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 		if tagValue != "" {
 			// support more tag property, as json tag omitempty 2018-07-13
 			return strings.Split(tagValue, ",")[0]
+		}
+	}
+
+	// 3.che
+	// ck customTag
+	if dm.enabledCustomTag {
+		tagValue = field.Tag.Get(dm.customTagName)
+		if tagValue != "" {
+			return tagValue
 		}
 	}
 
