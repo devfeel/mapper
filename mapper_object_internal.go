@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -37,12 +38,10 @@ func (dm *mapperObject) registerValue(objValue reflect.Value) error {
 	return nil
 }
 
-// cleanRegisterValue clean all register Value
+// cleanRegisterValue clean all register Value & field name map
 func (dm *mapperObject) cleanRegisterValue() {
-	dm.registerMap.Range(func(key, value interface{}) bool {
-		dm.registerMap.Delete(key)
-		return true
-	})
+	dm.registerMap = *new(sync.Map)
+	dm.fieldNameMap = *new(sync.Map)
 }
 
 // GetFieldName get fieldName with ElemValue and index

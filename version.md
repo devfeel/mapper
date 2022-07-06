@@ -1,5 +1,11 @@
 ## devfeel/mapper
 
+#### Version 0.7.12
+* Refactor: Solve the problem of repeated function implementation, rewrite "mapperObject.Getfieldname" direct call "mapperObject.getFieldName".
+* Refactor: Rewrite mapperObject.cleanRegisterValue, it will be reset registerMap & fieldNameMap.
+* 2022-07-06 14:00 in ShangHai
+
+
 #### Version 0.7.11
 * BugFix: Fix the problem that getFieldName cannot take effect when the tag behavior is set dynamically.
 * Feature: Add SetEnabledCustomTag\SetCustomTagName to support custom tags, except mapper tag and json tag, for issue #34 

@@ -216,15 +216,7 @@ func (dm *mapperObject) GetTypeName(obj interface{}) string {
 // GetFieldName get fieldName with ElemValue and index
 // if config tag string, return tag value
 func (dm *mapperObject) GetFieldName(objElem reflect.Value, index int) string {
-	fieldName := ""
-	field := objElem.Type().Field(index)
-	tag := dm.getStructTag(field)
-	if tag != "" {
-		fieldName = tag
-	} else {
-		fieldName = field.Name
-	}
-	return fieldName
+	return dm.getFieldName(objElem, index)
 }
 
 func (dm *mapperObject) GetDefaultTimeWrapper() *TimeWrapper {
