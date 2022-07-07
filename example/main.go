@@ -9,7 +9,7 @@ import (
 type (
 	User struct {
 		Name     string
-		Age      int
+		Age      int    `mapper:"_Age"`
 		Id       string `mapper:"_id"`
 		AA       string `json:"Score,omitempty"`
 		Data     []byte
@@ -33,7 +33,7 @@ type (
 
 	Leader struct {
 		Name      string
-		LeaderAge int `form:"Age"`
+		LeaderAge int `mapper:"_Age" form:"Age"`
 	}
 
 	JsonUser struct {
@@ -77,15 +77,26 @@ func main() {
 		Time: mapper.JSONTime(time.Now()),
 	}
 
-	user2 := &User{Name: "User2", Age: 35}
-	leader1 := &Leader{}
-	leader2 := &Leader{}
-	mapper.Mapper(user2, leader1)
-	fmt.Println("leader first:", leader1)
+	user = &User{Name: "User2", Age: 35}
+	leader := &Leader{}
+	mapper.Mapper(user, leader)
+	fmt.Println("leader first:", leader)
 	mapper.SetCustomTagName("form")
 	mapper.SetEnabledCustomTag(true)
-	mapper.Mapper(user2, leader2)
-	fmt.Println("leader second:", leader2)
+	leader = &Leader{}
+	mapper.Mapper(user, leader)
+	fmt.Println("leader second:", leader)
+
+	mapper.SetEnabledMapperTag(false)
+	leader = &Leader{}
+	mapper.Mapper(user, leader)
+	fmt.Println("leader third:", leader)
+
+	//mapper.SetEnabledMapperTag(false)
+	mapper.SetEnabledCustomTag(false)
+	leader = &Leader{}
+	mapper.Mapper(user, leader)
+	fmt.Println("leader fourth 2:", leader)
 
 	fmt.Println(jsonUser)
 }
