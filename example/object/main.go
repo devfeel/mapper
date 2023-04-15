@@ -5,41 +5,33 @@ import (
 	"github.com/devfeel/mapper"
 )
 
-type (
-	User struct {
-		Name  string `json:"name" mapper:"name"`
-		Class int    `mapper:"class"`
-		Age   int    `json:"age" mapper:"-"`
-	}
+// Base model
+type BaseModel struct {
+	Id    int `json:"id"`
+	NameX string
+}
 
-	Student struct {
-		Name  string `json:"name" mapper:"name"`
-		Class int    `mapper:"class"`
-		Age   []int  `json:"age" mapper:"-"`
-	}
-)
+// Country model
+type Country struct {
+	BaseModel `json:"composite-field"`
+	Name      string `json:"name"`
+}
+
+type CountryRes struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
 
 func main() {
-	user := &User{Name: "shyandsy", Class: 1, Age: 10}
-	student := &Student{}
+	var items *[]Country = new([]Country)
+	c := &Country{BaseModel{1, "1X"}, "111"}
+	*items = append(*items, *c)
+	var mitems *[]CountryRes = new([]CountryRes)
+	mapper.MapperSlice(items, mitems)
+	fmt.Println(items)
+	fmt.Println(mitems)
 
-	// create mapper object
-	m := mapper.NewMapper()
-
-	// in the version < v0.7.8, we will use field name as key when mapping structs
-	// we keep it as default behavior in this version
-	m.SetEnableFieldIgnoreTag(true)
-
-	student.Age = []int{1}
-
-	// disable the json tag
-	m.SetEnabledJsonTag(false)
-
-	// student::age should be 1
-	m.Mapper(user, student)
-
-	fmt.Println("user:")
-	fmt.Println(user)
-	fmt.Println("student:")
-	fmt.Println(student)
+	to := &CountryRes{}
+	mapper.Mapper(c, to)
+	fmt.Println(to)
 }

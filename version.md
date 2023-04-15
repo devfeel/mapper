@@ -1,5 +1,24 @@
 ## devfeel/mapper
 
+#### Version 0.7.13
+* Feature: Added the "composite-field" tag to continue expanding and searching for corresponding field mappings when encountering composite fields in a Struct. Currently, only one level of expansion is supported.
+* Tips: Thanks to @naeemaei for issue #39
+* For my birthday!
+* you can use like this:
+``` go
+  // Base model
+  type BaseModel struct {
+      Id    int `json:"id"`
+  }
+  
+  // Country model
+  type Country struct {
+      BaseModel `json:"composite-field"`
+      Name      string `json:"name"`
+  }
+```
+* 2023-04-15 19:00 in ShangHai
+
 #### Version 0.7.12
 * Refactor: Solve the problem of repeated function implementation, rewrite "mapperObject.Getfieldname" direct call "mapperObject.getFieldName".
 * Refactor: Rewrite mapperObject.cleanRegisterValue, it will be reset registerMap & fieldNameMap.

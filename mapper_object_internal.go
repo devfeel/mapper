@@ -93,6 +93,7 @@ func (dm *mapperObject) elemMapper(fromElem, toElem reflect.Value) error {
 	return nil
 }
 
+// elemToStruct to convert the different structs for assignment.
 func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
@@ -100,51 +101,75 @@ func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 		if fieldName == IgnoreTagValue {
 			continue
 		}
-
-		// check field is exists
-		realFieldName, exists := dm.CheckExistsField(toElem, fieldName)
-		if !exists {
-			continue
-		}
-
-		toFieldInfo := toElem.FieldByName(realFieldName)
-		// check field is same type
-		if dm.enabledTypeChecking {
-			if fromFieldInfo.Kind() != toFieldInfo.Kind() {
-				continue
-			}
-		}
-
-		if dm.enabledMapperStructField &&
-			toFieldInfo.Kind() == reflect.Struct && fromFieldInfo.Kind() == reflect.Struct &&
-			toFieldInfo.Type() != fromFieldInfo.Type() &&
-			!dm.checkIsTypeWrapper(toFieldInfo) && !dm.checkIsTypeWrapper(fromFieldInfo) {
-			x := reflect.New(toFieldInfo.Type()).Elem()
-			err := dm.elemMapper(fromFieldInfo, x)
-			if err != nil {
-				fmt.Println("auto mapper failed", fromFieldInfo, "=>", toFieldInfo, "error", err.Error())
-			} else {
-				toFieldInfo.Set(x)
-			}
-		} else {
-			isSet := false
-			if dm.enabledAutoTypeConvert {
-				if dm.DefaultTimeWrapper.IsType(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
-					fromTime := fromFieldInfo.Interface().(time.Time)
-					toFieldInfo.Set(reflect.ValueOf(TimeToUnix(fromTime)))
-					isSet = true
-				} else if dm.DefaultTimeWrapper.IsType(toFieldInfo) && fromFieldInfo.Kind() == reflect.Int64 {
-					fromTime := fromFieldInfo.Interface().(int64)
-					toFieldInfo.Set(reflect.ValueOf(UnixToTime(fromTime)))
-					isSet = true
+		if fieldName == CompositeFieldTagValue &&
+			fromFieldInfo.Kind() == reflect.Struct {
+			//If composite fields are identified, further decomposition and judgment will be taken.
+			fromElem := fromFieldInfo
+			for i := 0; i < fromElem.NumField(); i++ {
+				fromFieldInfo := fromElem.Field(i)
+				fieldName := dm.getFieldName(fromElem, i)
+				if fieldName == IgnoreTagValue {
+					continue
+				}
+				err := dm.convertstructfieldInternal(fieldName, fromFieldInfo, toElem)
+				if err != nil {
+					fmt.Println("auto mapper failed", fromFieldInfo, "error", err.Error())
 				}
 			}
-			if !isSet {
-				toFieldInfo.Set(fromFieldInfo)
+		} else {
+			err := dm.convertstructfieldInternal(fieldName, fromFieldInfo, toElem)
+			if err != nil {
+				fmt.Println("auto mapper failed", fromFieldInfo, "error", err.Error())
 			}
 		}
-
 	}
+}
+
+// convertstructfieldInternal to convert the fields of different structs for assignment.
+func (dm *mapperObject) convertstructfieldInternal(fieldName string, fromFieldInfo, toElem reflect.Value) error {
+	// check field is exists
+	realFieldName, exists := dm.CheckExistsField(toElem, fieldName)
+	if !exists {
+		return nil
+	}
+
+	toFieldInfo := toElem.FieldByName(realFieldName)
+	// check field is same type
+	if dm.enabledTypeChecking {
+		if fromFieldInfo.Kind() != toFieldInfo.Kind() {
+			return nil
+		}
+	}
+
+	if dm.enabledMapperStructField &&
+		toFieldInfo.Kind() == reflect.Struct && fromFieldInfo.Kind() == reflect.Struct &&
+		toFieldInfo.Type() != fromFieldInfo.Type() &&
+		!dm.checkIsTypeWrapper(toFieldInfo) && !dm.checkIsTypeWrapper(fromFieldInfo) {
+		x := reflect.New(toFieldInfo.Type()).Elem()
+		err := dm.elemMapper(fromFieldInfo, x)
+		if err != nil {
+			return err
+		} else {
+			toFieldInfo.Set(x)
+		}
+	} else {
+		isSet := false
+		if dm.enabledAutoTypeConvert {
+			if dm.DefaultTimeWrapper.IsType(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
+				fromTime := fromFieldInfo.Interface().(time.Time)
+				toFieldInfo.Set(reflect.ValueOf(TimeToUnix(fromTime)))
+				isSet = true
+			} else if dm.DefaultTimeWrapper.IsType(toFieldInfo) && fromFieldInfo.Kind() == reflect.Int64 {
+				fromTime := fromFieldInfo.Interface().(int64)
+				toFieldInfo.Set(reflect.ValueOf(UnixToTime(fromTime)))
+				isSet = true
+			}
+		}
+		if !isSet {
+			toFieldInfo.Set(fromFieldInfo)
+		}
+	}
+	return nil
 }
 
 func (dm *mapperObject) elemToMap(fromElem, toElem reflect.Value) {
