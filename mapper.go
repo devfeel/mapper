@@ -23,6 +23,7 @@ type IMapper interface {
 
 	GetTypeName(obj interface{}) string
 	GetFieldName(objElem reflect.Value, index int) string
+	GetCustomTagName() string
 	GetDefaultTimeWrapper() *TimeWrapper
 
 	CheckExistsField(elem reflect.Value, fieldName string) (realFieldName string, exists bool)

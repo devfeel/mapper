@@ -1,12 +1,18 @@
 package mapper
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 )
+
+func TestMapperObject_NewMapper(t *testing.T) {
+	m := NewMapper(CTypeChecking(true), CCustomTagName("^"))
+	fmt.Println(m)
+}
 
 func Test_Object_SetEnabledTypeChecking(t *testing.T) {
 	m := NewMapper()

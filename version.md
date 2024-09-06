@@ -1,5 +1,27 @@
 ## devfeel/mapper
 
+#### Version 0.7.14
+* Feature: Implement variable arguments based on NewMapper for flexible configuration settings when you init mapper.
+* Feature: Add Setting struct used to Config mapper
+* you can use like this:
+``` go
+  // Default Setting:
+  // EnabledTypeChecking:      false,
+  // EnabledMapperStructField: true,
+  // EnabledAutoTypeConvert:   true,
+  // EnabledMapperTag:         true,
+  // EnabledJsonTag:           true,
+  // EnabledCustomTag:         false,
+  // EnableFieldIgnoreTag:     false,
+  
+  /// When you use default setting
+  NewMapper()
+  
+  /// When you will change some setting
+  NewMapper(CTypeChecking(true), CCustomTagName("-"))
+```
+* 2024-09-06 19:00 in ShangHai
+
 #### Version 0.7.13
 * Feature: Added the "composite-field" tag to continue expanding and searching for corresponding field mappings when encountering composite fields in a Struct. Currently, only one level of expansion is supported.
 * Tips: Thanks to @naeemaei for issue #39

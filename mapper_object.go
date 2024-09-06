@@ -9,42 +9,25 @@ import (
 )
 
 type mapperObject struct {
-	ZeroValue                reflect.Value
-	DefaultTimeWrapper       *TimeWrapper
-	typeWrappers             []TypeWrapper
-	timeType                 reflect.Type
-	jsonTimeType             reflect.Type
-	fieldNameMap             sync.Map
-	registerMap              sync.Map
-	enabledTypeChecking      bool
-	enabledMapperStructField bool
-	enabledAutoTypeConvert   bool
-	enabledMapperTag         bool
-	enabledJsonTag           bool
-
-	enabledCustomTag bool
-	customTagName    string
-
-	// in the version < 0.7.8, we use field name as the key when mapping structs if field tag is "-"
-	// from 0.7.8, we add switch enableIgnoreFieldTag which is false in default
-	// if caller enable this flag, the field will be ignored in the mapping process
-	enableFieldIgnoreTag bool
+	ZeroValue          reflect.Value
+	DefaultTimeWrapper *TimeWrapper
+	typeWrappers       []TypeWrapper
+	timeType           reflect.Type
+	jsonTimeType       reflect.Type
+	fieldNameMap       sync.Map
+	registerMap        sync.Map
+	setting            *Setting
 }
 
-func NewMapper() IMapper {
+func NewMapper(opts ...Option) IMapper {
+	setting := NewSetting(opts...)
 	dm := mapperObject{
-		ZeroValue:                reflect.Value{},
-		DefaultTimeWrapper:       NewTimeWrapper(),
-		typeWrappers:             []TypeWrapper{},
-		timeType:                 reflect.TypeOf(time.Now()),
-		jsonTimeType:             reflect.TypeOf(JSONTime(time.Now())),
-		enabledTypeChecking:      false,
-		enabledMapperStructField: true,
-		enabledAutoTypeConvert:   true,
-		enabledMapperTag:         true,
-		enabledJsonTag:           true,
-		enabledCustomTag:         false,
-		enableFieldIgnoreTag:     false, // 保留老版本默认行为：对于tag = “-”的字段使用FieldName
+		ZeroValue:          reflect.Value{},
+		DefaultTimeWrapper: NewTimeWrapper(),
+		typeWrappers:       []TypeWrapper{},
+		timeType:           reflect.TypeOf(time.Now()),
+		jsonTimeType:       reflect.TypeOf(JSONTime(time.Now())),
+		setting:            setting,
 	}
 	dm.useWrapper(dm.DefaultTimeWrapper)
 	return &dm
@@ -122,46 +105,46 @@ func (dm *mapperObject) MapperMap(fromMap map[string]interface{}, toObj interfac
 // if set true, the field type will be checked for consistency during mapping
 // default is false
 func (dm *mapperObject) SetEnabledTypeChecking(isEnabled bool) {
-	dm.enabledTypeChecking = isEnabled
+	dm.setting.EnabledTypeChecking = isEnabled
 }
 
 func (dm *mapperObject) IsEnabledTypeChecking() bool {
-	return dm.enabledTypeChecking
+	return dm.setting.EnabledTypeChecking
 }
 
 // SetEnabledMapperTag set enabled flag for 'Mapper' tag check
 // if set true, 'Mapper' tag will be check during mapping's GetFieldName
 // default is true
 func (dm *mapperObject) SetEnabledMapperTag(isEnabled bool) {
-	dm.enabledMapperTag = isEnabled
+	dm.setting.EnabledMapperTag = isEnabled
 	dm.cleanRegisterValue()
 }
 
 func (dm *mapperObject) IsEnabledMapperTag() bool {
-	return dm.enabledMapperTag
+	return dm.setting.EnabledMapperTag
 }
 
 // SetEnabledJsonTag set enabled flag for 'Json' tag check
 // if set true, 'Json' tag will be check during mapping's GetFieldName
 // default is true
 func (dm *mapperObject) SetEnabledJsonTag(isEnabled bool) {
-	dm.enabledJsonTag = isEnabled
+	dm.setting.EnabledJsonTag = isEnabled
 	dm.cleanRegisterValue()
 }
 
 func (dm *mapperObject) IsEnabledJsonTag() bool {
-	return dm.enabledJsonTag
+	return dm.setting.EnabledJsonTag
 }
 
 // SetEnabledAutoTypeConvert set enabled flag for auto type convert
 // if set true, field will auto convert in Time and Unix
 // default is true
 func (dm *mapperObject) SetEnabledAutoTypeConvert(isEnabled bool) {
-	dm.enabledAutoTypeConvert = isEnabled
+	dm.setting.EnabledAutoTypeConvert = isEnabled
 }
 
 func (dm *mapperObject) IsEnabledAutoTypeConvert() bool {
-	return dm.enabledAutoTypeConvert
+	return dm.setting.EnabledAutoTypeConvert
 }
 
 // SetEnabledMapperStructField set enabled flag for MapperStructField
@@ -171,28 +154,28 @@ func (dm *mapperObject) IsEnabledAutoTypeConvert() bool {
 // 2. fromField and toField must be not same type
 // default is enabled
 func (dm *mapperObject) SetEnabledMapperStructField(isEnabled bool) {
-	dm.enabledMapperStructField = isEnabled
+	dm.setting.EnabledMapperStructField = isEnabled
 }
 
 func (dm *mapperObject) IsEnabledMapperStructField() bool {
-	return dm.enabledMapperStructField
+	return dm.setting.EnabledMapperStructField
 }
 
 // SetEnabledCustomTag set enabled flag for set custom tag name
 // if set true and set customTagName, the custom tag will be check during mapping's GetFieldName
 // default is false
 func (dm *mapperObject) SetEnabledCustomTag(isEnabled bool) {
-	dm.enabledCustomTag = isEnabled
+	dm.setting.EnabledCustomTag = isEnabled
 	dm.cleanRegisterValue()
 }
 
 func (dm *mapperObject) IsEnabledCustomTag() bool {
-	return dm.enabledCustomTag
+	return dm.setting.EnabledCustomTag
 }
 
 // SetCustomTagName
 func (dm *mapperObject) SetCustomTagName(tagName string) {
-	dm.customTagName = tagName
+	dm.setting.CustomTagName = tagName
 }
 
 // SetEnableFieldIgnoreTag set the enabled flag for the ignored tag
@@ -200,17 +183,22 @@ func (dm *mapperObject) SetCustomTagName(tagName string) {
 // from 0.7.8, we add switch enableFieldIgnoreTag which is false in default
 // if caller enable this flag, the field will be ignored in the mapping process
 func (dm *mapperObject) SetEnableFieldIgnoreTag(isEnabled bool) {
-	dm.enableFieldIgnoreTag = isEnabled
+	dm.setting.EnableFieldIgnoreTag = isEnabled
 }
 
 func (dm *mapperObject) IsEnableFieldIgnoreTag() bool {
-	return dm.enableFieldIgnoreTag
+	return dm.setting.EnableFieldIgnoreTag
 }
 
 // GetTypeName get type name
 func (dm *mapperObject) GetTypeName(obj interface{}) string {
 	object := reflect.ValueOf(obj)
 	return object.String()
+}
+
+// GetCustomTagName get CustomTagName
+func (dm *mapperObject) GetCustomTagName() string {
+	return dm.setting.CustomTagName
 }
 
 // GetFieldName get fieldName with ElemValue and index
