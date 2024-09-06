@@ -135,13 +135,13 @@ func (dm *mapperObject) convertstructfieldInternal(fieldName string, fromFieldIn
 
 	toFieldInfo := toElem.FieldByName(realFieldName)
 	// check field is same type
-	if dm.enabledTypeChecking {
+	if dm.setting.EnabledTypeChecking {
 		if fromFieldInfo.Kind() != toFieldInfo.Kind() {
 			return nil
 		}
 	}
 
-	if dm.enabledMapperStructField &&
+	if dm.setting.EnabledMapperStructField &&
 		toFieldInfo.Kind() == reflect.Struct && fromFieldInfo.Kind() == reflect.Struct &&
 		toFieldInfo.Type() != fromFieldInfo.Type() &&
 		!dm.checkIsTypeWrapper(toFieldInfo) && !dm.checkIsTypeWrapper(fromFieldInfo) {
@@ -154,7 +154,7 @@ func (dm *mapperObject) convertstructfieldInternal(fieldName string, fromFieldIn
 		}
 	} else {
 		isSet := false
-		if dm.enabledAutoTypeConvert {
+		if dm.setting.EnabledAutoTypeConvert {
 			if dm.DefaultTimeWrapper.IsType(fromFieldInfo) && toFieldInfo.Kind() == reflect.Int64 {
 				fromTime := fromFieldInfo.Interface().(time.Time)
 				toFieldInfo.Set(reflect.ValueOf(TimeToUnix(fromTime)))
@@ -263,7 +263,7 @@ func (dm *mapperObject) setFieldValue(fieldValue reflect.Value, fieldKind reflec
 			case string:
 				timeString = d
 			case int64:
-				if dm.enabledAutoTypeConvert {
+				if dm.setting.EnabledAutoTypeConvert {
 					// try to transform Unix time to local Time
 					t, err := UnixToTimeLocation(value.(int64), time.UTC.String())
 					if err != nil {
@@ -303,7 +303,7 @@ func (dm *mapperObject) setFieldValue(fieldValue reflect.Value, fieldKind reflec
 func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 	tagValue := ""
 	// 1.check mapperTagKey
-	if dm.enabledMapperTag {
+	if dm.setting.EnabledMapperTag {
 		tagValue = field.Tag.Get(mapperTagKey)
 		if tagValue != "" {
 			return tagValue
@@ -311,7 +311,7 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 	}
 
 	// 2.check jsonTagKey
-	if dm.enabledJsonTag {
+	if dm.setting.EnabledJsonTag {
 		tagValue = field.Tag.Get(jsonTagKey)
 		if tagValue != "" {
 			// support more tag property, as json tag omitempty 2018-07-13
@@ -321,8 +321,8 @@ func (dm *mapperObject) getStructTag(field reflect.StructField) string {
 
 	// 3.che
 	// ck customTag
-	if dm.enabledCustomTag {
-		tagValue = field.Tag.Get(dm.customTagName)
+	if dm.setting.EnabledCustomTag {
+		tagValue = field.Tag.Get(dm.setting.CustomTagName)
 		if tagValue != "" {
 			return tagValue
 		}

@@ -42,6 +42,15 @@ func init() {
 	testValue = reflect.ValueOf(&testStruct{})
 }
 
+func TestPackageVersion(t *testing.T) {
+	v := PackageVersion()
+	if v != packageVersion {
+		t.Error("PackageVersion error: not equal with packageVersion[" + packageVersion + "]")
+	} else {
+		t.Log("PackageVersion success")
+	}
+}
+
 func Test_CheckIsTypeWrapper(t *testing.T) {
 	v := TagStruct{}
 	if standardMapper.CheckIsTypeWrapper(reflect.ValueOf(v)) == true {
