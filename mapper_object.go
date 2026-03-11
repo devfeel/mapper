@@ -17,6 +17,7 @@ type mapperObject struct {
 	fieldNameMap       sync.Map
 	registerMap        sync.Map
 	setting            *Setting
+	fieldCache         sync.Map // cache for field mappings: key="srcType->destType", value=[]int
 }
 
 func NewMapper(opts ...Option) IMapper {

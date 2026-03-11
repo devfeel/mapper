@@ -84,6 +84,12 @@ func (dm *mapperObject) elemMapper(fromElem, toElem reflect.Value) error {
 			return err
 		}
 	}
+
+	// Compute and cache field mapping for struct-to-struct
+	if fromElem.Type().Kind() != reflect.Map && toElem.Type().Kind() != reflect.Map {
+		dm.computeFieldMappingCache(fromElem.Type(), toElem.Type())
+	}
+
 	if toElem.Type().Kind() == reflect.Map {
 		dm.elemToMap(fromElem, toElem)
 	} else {
@@ -93,8 +99,122 @@ func (dm *mapperObject) elemMapper(fromElem, toElem reflect.Value) error {
 	return nil
 }
 
+// computeFieldMappingCache computes and caches field mapping between src and dest types
+func (dm *mapperObject) computeFieldMappingCache(srcType, destType reflect.Type) {
+	key := srcType.String() + "->" + destType.String()
+
+	// Check if already cached
+	if _, ok := dm.fieldCache.Load(key); ok {
+		return
+	}
+
+	// Compute mapping: store as []int pairs [srcIdx, destIdx, ...]
+	mapping := make([]int, 0, 16)
+
+	for srcIdx := 0; srcIdx < srcType.NumField(); srcIdx++ {
+		fieldName := dm.getFieldNameByType(srcType, srcIdx)
+
+		if fieldName == IgnoreTagValue || fieldName == CompositeFieldTagValue {
+			continue
+		}
+
+		// Look up dest field by name
+		realFieldName, exists := dm.CheckExistsFieldByType(destType, fieldName)
+		if !exists {
+			continue
+		}
+
+		destField, ok := destType.FieldByName(realFieldName)
+		if !ok {
+			continue
+		}
+
+		// Store as pair
+		mapping = append(mapping, srcIdx, destField.Index[0])
+	}
+
+	if len(mapping) > 0 {
+		dm.fieldCache.Store(key, mapping)
+	}
+}
+
+// getFieldMapping retrieves cached field mapping
+func (dm *mapperObject) getFieldMapping(srcType, destType reflect.Type) ([]int, bool) {
+	key := srcType.String() + "->" + destType.String()
+	val, ok := dm.fieldCache.Load(key)
+	if !ok {
+		return nil, false
+	}
+	return val.([]int), true
+}
+
+// getFieldNameByType gets field name by type and index
+func (dm *mapperObject) getFieldNameByType(objType reflect.Type, index int) string {
+	field := objType.Field(index)
+	tag := dm.getStructTag(field)
+	if tag == IgnoreTagValue && !dm.IsEnableFieldIgnoreTag() {
+		tag = ""
+	}
+	if tag != "" {
+		return tag
+	}
+	return field.Name
+}
+
+// CheckExistsFieldByType checks if field exists by type (without value)
+func (dm *mapperObject) CheckExistsFieldByType(elemType reflect.Type, fieldName string) (string, bool) {
+	typeName := elemType.String()
+	fileKey := typeName + nameConnector + fieldName
+	realName, isOk := dm.fieldNameMap.Load(fileKey)
+	if !isOk {
+		return "", isOk
+	}
+	return realName.(string), isOk
+}
+
 // elemToStruct to convert the different structs for assignment.
+// Uses cached field indices for better performance while keeping original logic
 func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
+	// Try to use cached mapping for non-nested fields
+	mapping, hasCache := dm.getFieldMapping(fromElem.Type(), toElem.Type())
+
+	if hasCache && len(mapping) > 0 {
+		// Use cached indices for faster access
+		for i := 0; i < len(mapping); i += 2 {
+			srcIdx := mapping[i]
+			destIdx := mapping[i+1]
+			fromFieldInfo := fromElem.Field(srcIdx)
+			toFieldInfo := toElem.Field(destIdx)
+			dm.copyFieldValue(fromFieldInfo, toFieldInfo)
+		}
+
+		// Still handle nested struct fields with original logic
+		for i := 0; i < fromElem.NumField(); i++ {
+			fromFieldInfo := fromElem.Field(i)
+			fieldName := dm.getFieldName(fromElem, i)
+			if fieldName == CompositeFieldTagValue && fromFieldInfo.Kind() == reflect.Struct {
+				fromNested := fromFieldInfo
+				for j := 0; j < fromNested.NumField(); j++ {
+					nestedFieldInfo := fromNested.Field(j)
+					nestedFieldName := dm.getFieldName(fromNested, j)
+					if nestedFieldName == IgnoreTagValue {
+						continue
+					}
+					err := dm.convertstructfieldInternal(nestedFieldName, nestedFieldInfo, toElem)
+					if err != nil {
+						fmt.Println("auto mapper failed", nestedFieldInfo, "error", err.Error())
+					}
+				}
+			}
+		}
+	} else {
+		// Fallback to original logic
+		dm.elemToStructOriginal(fromElem, toElem)
+	}
+}
+
+// elemToStructOriginal keeps the original implementation for fallback
+func (dm *mapperObject) elemToStructOriginal(fromElem, toElem reflect.Value) {
 	for i := 0; i < fromElem.NumField(); i++ {
 		fromFieldInfo := fromElem.Field(i)
 		fieldName := dm.getFieldName(fromElem, i)
@@ -104,10 +224,10 @@ func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 		if fieldName == CompositeFieldTagValue &&
 			fromFieldInfo.Kind() == reflect.Struct {
 			//If composite fields are identified, further decomposition and judgment will be taken.
-			fromElem := fromFieldInfo
-			for i := 0; i < fromElem.NumField(); i++ {
-				fromFieldInfo := fromElem.Field(i)
-				fieldName := dm.getFieldName(fromElem, i)
+			fromNested := fromFieldInfo
+			for i := 0; i < fromNested.NumField(); i++ {
+				fromFieldInfo := fromNested.Field(i)
+				fieldName := dm.getFieldName(fromNested, i)
 				if fieldName == IgnoreTagValue {
 					continue
 				}
@@ -123,6 +243,44 @@ func (dm *mapperObject) elemToStruct(fromElem, toElem reflect.Value) {
 			}
 		}
 	}
+}
+
+// copyFieldValue copies field value with type conversion support
+func (dm *mapperObject) copyFieldValue(fromField, toField reflect.Value) {
+	// Check type compatibility
+	if dm.setting.EnabledTypeChecking {
+		if fromField.Kind() != toField.Kind() {
+			return
+		}
+	}
+
+	// Handle nested struct
+	if dm.setting.EnabledMapperStructField &&
+		toField.Kind() == reflect.Struct && fromField.Kind() == reflect.Struct &&
+		toField.Type() != fromField.Type() &&
+		!dm.checkIsTypeWrapper(toField) && !dm.checkIsTypeWrapper(fromField) {
+		x := reflect.New(toField.Type()).Elem()
+		dm.elemMapper(fromField, x)
+		toField.Set(x)
+		return
+	}
+
+	// Handle auto type conversion (Time <-> int64)
+	if dm.setting.EnabledAutoTypeConvert {
+		if dm.DefaultTimeWrapper.IsType(fromField) && toField.Kind() == reflect.Int64 {
+			fromTime := fromField.Interface().(time.Time)
+			toField.Set(reflect.ValueOf(TimeToUnix(fromTime)))
+			return
+		}
+		if dm.DefaultTimeWrapper.IsType(toField) && fromField.Kind() == reflect.Int64 {
+			fromInt := fromField.Interface().(int64)
+			toField.Set(reflect.ValueOf(UnixToTime(fromInt)))
+			return
+		}
+	}
+
+	// Direct copy
+	toField.Set(fromField)
 }
 
 // convertstructfieldInternal to convert the fields of different structs for assignment.
