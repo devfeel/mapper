@@ -3,9 +3,71 @@ package mapper
 import (
 	"errors"
 	"reflect"
+	"sync"
 )
 
-// ============ 函数式泛型 Mapper ============
+// ============ 字段映射缓存 ============
+
+// fieldMappingCache 字段映射缓存
+// key: fromType -> toType, value: field mappings
+var fieldMappingCache = &sync.Map{}
+
+// fieldMapping 字段映射信息
+type fieldMapping struct {
+	fromIndex []int  // 源字段索引路径
+	toIndex   int    // 目标字段索引
+}
+
+// getFieldMappings 获取字段映射缓存
+func getFieldMappings(fromType, toType reflect.Type) ([]fieldMapping, bool) {
+	key := cacheKey(fromType, toType)
+	if cached, ok := fieldMappingCache.Load(key); ok {
+		return cached.([]fieldMapping), true
+	}
+	return nil, false
+}
+
+// cacheKey 生成缓存键
+func cacheKey(fromType, toType reflect.Type) string {
+	return fromType.String() + "->" + toType.String()
+}
+
+// buildFieldMappings 构建字段映射关系
+func buildFieldMappings(fromType, toType reflect.Type) []fieldMapping {
+	mappings := []fieldMapping{}
+	
+	for i := 0; i < fromType.NumField(); i++ {
+		fromField := fromType.Field(i)
+		
+		// 尝试通过 mapper tag 或字段名找到对应字段
+		fieldName := fromField.Name
+		toField, found := toType.FieldByName(fieldName)
+		if !found {
+			// 尝试通过 mapper tag 查找
+			if tag := fromField.Tag.Get("mapper"); tag != "" {
+				if f, ok := toType.FieldByName(tag); ok {
+					toField = f
+					found = true
+				}
+			}
+		}
+		
+		if found && fromField.Type == toField.Type {
+			mappings = append(mappings, fieldMapping{
+				fromIndex: []int{i},
+				toIndex:   toField.Index[0],
+			})
+		}
+	}
+	
+	// 存入缓存
+	key := cacheKey(fromType, toType)
+	fieldMappingCache.Store(key, mappings)
+	
+	return mappings
+}
+
+// ============ 函数式泛型 Mapper (优化版) ============
 
 // MapDirect 同构/异构映射，直接返回结果
 // 使用示例: dto := mapper.MapDirect[User, UserDTO](user)
@@ -25,16 +87,35 @@ func MapDirect[From, To any](from From) To {
 		fromVal = fromVal.Elem()
 	}
 
-	// 创建目标值
-	toVal := reflect.ValueOf(&result)
-	if toVal.Kind() == reflect.Ptr {
-		toVal = toVal.Elem()
+	// 获取类型信息
+	fromType := fromVal.Type()
+	toType := reflect.TypeOf(result)
+	
+	if toType.Kind() != reflect.Struct {
+		return result
 	}
 
+	// 尝试从缓存获取映射关系
+	mappings, ok := getFieldMappings(fromType, toType)
+	if !ok {
+		mappings = buildFieldMappings(fromType, toType)
+	}
+
+	// 创建目标值
+	toVal := reflect.New(toType).Elem()
+
 	// 执行映射
-	mapStructValue(fromVal, toVal)
+	for _, m := range mappings {
+		if len(m.fromIndex) > 0 {
+			fromFieldVal := fromVal.FieldByIndex(m.fromIndex)
+			toFieldVal := toVal.Field(m.toIndex)
+			if toFieldVal.CanSet() {
+				toFieldVal.Set(fromFieldVal)
+			}
+		}
+	}
 	
-	return result
+	return toVal.Interface().(To)
 }
 
 // MapDirectPtr 指针版本
@@ -53,6 +134,15 @@ func MapDirectPtr[From, To any](from *From) *To {
 func MapDirectSlice[From, To any](from []From) []To {
 	if from == nil {
 		return nil
+	}
+	
+	// 尝试预获取映射关系以优化批量操作
+	fromType := reflect.TypeOf((*From)(nil)).Elem()
+	toType := reflect.TypeOf((*To)(nil)).Elem()
+	
+	_, hasCache := getFieldMappings(fromType, toType)
+	if !hasCache {
+		buildFieldMappings(fromType, toType)
 	}
 	
 	result := make([]To, len(from))
@@ -79,47 +169,7 @@ func MapDirectPtrSlice[From, To any](from []*From) []*To {
 	return result
 }
 
-// mapStructValue 结构体映射
-func mapStructValue(fromVal, toVal reflect.Value) {
-	if toVal.Kind() == reflect.Ptr {
-		if toVal.IsNil() && toVal.CanSet() {
-			toVal.Set(reflect.New(toVal.Type().Elem()))
-		}
-		if toVal.IsNil() {
-			return
-		}
-		toVal = toVal.Elem()
-	}
-
-	if toVal.Kind() != reflect.Struct {
-		return
-	}
-
-	// 映射同名同类型字段
-	for i := 0; i < fromVal.NumField(); i++ {
-		fromField := fromVal.Type().Field(i)
-		toField, found := toVal.Type().FieldByName(fromField.Name)
-		
-		if !found {
-			continue
-		}
-
-		// 类型检查
-		if fromField.Type != toField.Type {
-			continue
-		}
-
-		fromFieldVal := fromVal.Field(i)
-		toFieldVal := toVal.FieldByName(fromField.Name)
-		
-		// 设置值
-		if toFieldVal.CanSet() {
-			toFieldVal.Set(fromFieldVal)
-		}
-	}
-}
-
-// ============ 错误处理函数 ============
+// ============ 错误处理函数 (优化版) ============
 
 // SafeMapDirect 安全映射，忽略错误
 // 使用示例: dto := mapper.SafeMapDirect[User, UserDTO](user)
@@ -139,16 +189,35 @@ func SafeMapDirect[From, To any](from From) (To, error) {
 		fromVal = fromVal.Elem()
 	}
 
-	// 创建目标值
-	toVal := reflect.ValueOf(&result)
-	if toVal.Kind() == reflect.Ptr {
-		toVal = toVal.Elem()
+	// 获取类型信息
+	fromType := fromVal.Type()
+	toType := reflect.TypeOf(result)
+	
+	if toType.Kind() != reflect.Struct {
+		return result, nil
 	}
 
+	// 尝试从缓存获取映射关系
+	mappings, ok := getFieldMappings(fromType, toType)
+	if !ok {
+		mappings = buildFieldMappings(fromType, toType)
+	}
+
+	// 创建目标值
+	toVal := reflect.New(toType).Elem()
+
 	// 执行映射
-	mapStructValue(fromVal, toVal)
+	for _, m := range mappings {
+		if len(m.fromIndex) > 0 {
+			fromFieldVal := fromVal.FieldByIndex(m.fromIndex)
+			toFieldVal := toVal.Field(m.toIndex)
+			if toFieldVal.CanSet() {
+				toFieldVal.Set(fromFieldVal)
+			}
+		}
+	}
 	
-	return result, nil
+	return toVal.Interface().(To), nil
 }
 
 // SafeMapDirectSlice 安全批量映射
@@ -167,4 +236,10 @@ func SafeMapDirectSlice[From, To any](from []From) ([]To, error) {
 		result[i] = r
 	}
 	return result, nil
+}
+
+// ClearFieldMappingCache 清除字段映射缓存
+// 用于在需要重新构建映射关系时调用
+func ClearFieldMappingCache() {
+	fieldMappingCache = &sync.Map{}
 }
