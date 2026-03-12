@@ -164,3 +164,84 @@ student:
   * IsEnabledAutoTypeConvert
   * SetEnabledMapperStructField    // mapper struct field
   * IsEnabledMapperStructField
+
+## New Generic APIs (v0.8+)
+
+Version 0.8 introduces a new set of generic mapping functions with better performance and simpler usage.
+
+### Performance
+
+| Method | Old | New | Improvement |
+|--------|-----|-----|-------------|
+| Single mapping | 3,897 ns/op | 556 ns/op | **7x faster** |
+| Slice mapping (100 items) | 452,718 ns/op | 59,185 ns/op | **7.6x faster** |
+| Memory allocation | 400 B/op | 272 B/op | **-32%** |
+| Allocations | 42 allocs/op | 4 allocs/op | **-90%** |
+
+### New APIs
+
+```go
+// Single mapping - direct return result
+dto := mapper.MapDirect[Source, Target](source)
+
+// Pointer version
+dto := mapper.MapDirectPtr[Source, Target](&source)
+
+// Slice mapping
+dtos := mapper.MapDirectSlice[Source, Target](sources)
+
+// Pointer slice mapping
+dtos := mapper.MapDirectPtrSlice[Source, Target](&sources)
+
+// With error handling
+dto, err := mapper.SafeMapDirect[Source, Target](source)
+
+// Slice with error handling
+dtos, err := mapper.SafeMapDirectSlice[Source, Target](sources)
+```
+
+### Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/devfeel/mapper"
+)
+
+type User struct {
+    ID   int64  `mapper:"id"`
+    Name string `mapper:"name"`
+    Age  int    `mapper:"age"`
+}
+
+type UserDTO struct {
+    ID   int64  `json:"id"`
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+
+func main() {
+    // Single mapping
+    user := User{ID: 1, Name: "Tom", Age: 20}
+    dto := mapper.MapDirect[User, UserDTO](user)
+    fmt.Printf("%+v\n", dto)
+
+    // Slice mapping
+    users := []User{
+        {ID: 1, Name: "Tom", Age: 20},
+        {ID: 2, Name: "Jerry", Age: 25},
+    }
+    dtos := mapper.MapDirectSlice[User, UserDTO](users)
+    fmt.Printf("%+v\n", dtos)
+}
+```
+
+### Benchmark Tests
+
+Run benchmarks to verify performance:
+
+```bash
+go test -bench=Benchmark_MapDirect -benchmem -count=3 ./...
+```
