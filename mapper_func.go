@@ -2,11 +2,15 @@ package mapper
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"runtime"
 	"sync"
 )
 
-// ============ 字段映射缓存 ============
+// parallelThreshold 并行处理的阈值
+// 当 slice 长度 >= 此值时启用并行映射
+var parallelThreshold = 1000
 
 // fieldMappingCache 字段映射缓存
 // key: fromType -> toType, value: field mappings
@@ -135,20 +139,68 @@ func MapDirectSlice[From, To any](from []From) []To {
 	if from == nil {
 		return nil
 	}
-	
-	// 尝试预获取映射关系以优化批量操作
+
+	length := len(from)
+	if length == 0 {
+		return []To{}
+	}
+
+	// 预获取映射关系以优化批量操作
 	fromType := reflect.TypeOf((*From)(nil)).Elem()
 	toType := reflect.TypeOf((*To)(nil)).Elem()
-	
+
 	_, hasCache := getFieldMappings(fromType, toType)
 	if !hasCache {
 		buildFieldMappings(fromType, toType)
 	}
-	
-	result := make([]To, len(from))
+
+	// 大 slice 使用并行处理
+	if length >= parallelThreshold {
+		return mapDirectSliceParallel[From, To](from)
+	}
+
+	result := make([]To, length)
 	for i, v := range from {
 		result[i] = MapDirect[From, To](v)
 	}
+	return result
+}
+
+// mapDirectSliceParallel 并行批量映射
+func mapDirectSliceParallel[From, To any](from []From) []To {
+	length := len(from)
+	result := make([]To, length)
+
+	// 计算合适的 worker 数量
+	numCPU := runtime.NumCPU()
+	numWorkers := length / 100 // 每 100 个元素一个 worker
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	if numWorkers > numCPU {
+		numWorkers = numCPU
+	}
+
+	chunkSize := length / numWorkers
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+
+	for w := 0; w < numWorkers; w++ {
+		start := w * chunkSize
+		end := start + chunkSize
+		if w == numWorkers-1 {
+			end = length // 最后一个 worker 处理剩余部分
+		}
+
+		go func(s, e int) {
+			defer wg.Done()
+			for i := s; i < e; i++ {
+				result[i] = MapDirect[From, To](from[i])
+			}
+		}(start, end)
+	}
+
+	wg.Wait()
 	return result
 }
 
@@ -158,14 +210,73 @@ func MapDirectPtrSlice[From, To any](from []*From) []*To {
 	if from == nil {
 		return nil
 	}
-	
-	result := make([]*To, len(from))
+
+	length := len(from)
+	if length == 0 {
+		return []*To{}
+	}
+
+	// 预获取映射关系以优化批量操作
+	fromType := reflect.TypeOf((*From)(nil)).Elem()
+	toType := reflect.TypeOf((*To)(nil)).Elem()
+
+	_, hasCache := getFieldMappings(fromType, toType)
+	if !hasCache {
+		buildFieldMappings(fromType, toType)
+	}
+
+	// 大 slice 使用并行处理
+	if length >= parallelThreshold {
+		return mapDirectPtrSliceParallel[From, To](from)
+	}
+
+	result := make([]*To, length)
 	for i, v := range from {
 		if v != nil {
 			t := MapDirect[From, To](*v)
 			result[i] = &t
 		}
 	}
+	return result
+}
+
+// mapDirectPtrSliceParallel 并行指针切片映射
+func mapDirectPtrSliceParallel[From, To any](from []*From) []*To {
+	length := len(from)
+	result := make([]*To, length)
+
+	numCPU := runtime.NumCPU()
+	numWorkers := length / 100
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	if numWorkers > numCPU {
+		numWorkers = numCPU
+	}
+
+	chunkSize := length / numWorkers
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+
+	for w := 0; w < numWorkers; w++ {
+		start := w * chunkSize
+		end := start + chunkSize
+		if w == numWorkers-1 {
+			end = length
+		}
+
+		go func(s, e int) {
+			defer wg.Done()
+			for i := s; i < e; i++ {
+				if from[i] != nil {
+					t := MapDirect[From, To](*from[i])
+					result[i] = &t
+				}
+			}
+		}(start, end)
+	}
+
+	wg.Wait()
 	return result
 }
 
@@ -226,15 +337,79 @@ func SafeMapDirectSlice[From, To any](from []From) ([]To, error) {
 	if from == nil {
 		return nil, nil
 	}
-	
-	result := make([]To, len(from))
+
+	length := len(from)
+	if length == 0 {
+		return []To{}, nil
+	}
+
+	// 大 slice 使用并行处理
+	if length >= parallelThreshold {
+		return safeMapDirectSliceParallel[From, To](from)
+	}
+
+	result := make([]To, length)
 	for i, v := range from {
 		r, err := SafeMapDirect[From, To](v)
 		if err != nil {
-			return nil, errors.New("map slice failed at index " + string(rune(i+'0')))
+			return nil, fmt.Errorf("map slice failed at index %d", i)
 		}
 		result[i] = r
 	}
+	return result, nil
+}
+
+// safeMapDirectSliceParallel 并行安全批量映射
+func safeMapDirectSliceParallel[From, To any](from []From) ([]To, error) {
+	length := len(from)
+	result := make([]To, length)
+
+	numCPU := runtime.NumCPU()
+	numWorkers := length / 100
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	if numWorkers > numCPU {
+		numWorkers = numCPU
+	}
+
+	chunkSize := length / numWorkers
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+	errChan := make(chan error, 1) // 用于接收第一个错误
+
+	for w := 0; w < numWorkers; w++ {
+		start := w * chunkSize
+		end := start + chunkSize
+		if w == numWorkers-1 {
+			end = length
+		}
+
+		go func(s, e int) {
+			defer wg.Done()
+			for i := s; i < e; i++ {
+				r, err := SafeMapDirect[From, To](from[i])
+				if err != nil {
+					select {
+					case errChan <- fmt.Errorf("map slice failed at index %d", i):
+					default:
+					}
+					return
+				}
+				result[i] = r
+			}
+		}(start, end)
+	}
+
+	wg.Wait()
+
+	// 检查是否有错误
+	select {
+	case err := <-errChan:
+		return nil, err
+	default:
+	}
+
 	return result, nil
 }
 
