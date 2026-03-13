@@ -64,7 +64,7 @@ type Item struct {
 }
 
 func main() {
-	fmt.Println("=== Mapper Function Tests ===\n")
+	fmt.Println("=== Mapper Function Tests ===")
 
 	// Test 1: Basic Mapper
 	testBasicMapper()
